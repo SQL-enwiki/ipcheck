@@ -367,8 +367,8 @@ if( $_POST['ip'] != '' ) {
 		}
 	}
 	
-	$m1_hola = json_decode( file_get_contents( "../proxies.json" ), true );
-	$m2_hola = json_decode( file_get_contents( "../hola_dns.json" ), true );
+	$m1_hola = json_decode( file_get_contents( "/data/project/ipcheck/proxies.json" ), true );
+	$m2_hola = json_decode( file_get_contents( "/data/project/ipcheck/hola_dns.json" ), true );
 	$is_hola = false;
 	
 	/* Method 1 */
