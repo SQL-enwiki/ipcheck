@@ -349,8 +349,9 @@ if( $_POST['ip'] != '' ) {
 		}
 	}
 	//Portscan setup
-	if( $_POST['portscan'] != "false" ) {
+	if( @$_POST['portscan'] != "false" ) {
 		$api['portscan'] = array();
+		$porturl = $purl . "$ip&auth=$auth";
 		// $scanres = json_decode( file_get_contents( $porturl ), true ); // cURL is better. Weird errors with file_get_contents.
 		$ch = curl_init( $porturl );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
@@ -366,8 +367,8 @@ if( $_POST['ip'] != '' ) {
 		}
 	}
 	
-	$m1_hola = json_decode( file_get_contents( "proxies.json" ), true );
-	$m2_hola = json_decode( file_get_contents( "hola_dns.json" ), true );
+	$m1_hola = json_decode( file_get_contents( "../proxies.json" ), true );
+	$m2_hola = json_decode( file_get_contents( "../hola_dns.json" ), true );
 	$is_hola = false;
 	
 	/* Method 1 */
@@ -392,7 +393,7 @@ if( $_POST['ip'] != '' ) {
 	if( $is_hola === false ) { $out .= "\n<br />IP has not been seen as a Hola node.\n"; $api['hola'] = "no"; }
 
 		$out .= "<br/><br/>Check another: <br/>";
-	if( $_POST['api'] == "true" ) { echo json_encode( $api ); die(); } else {
+	if( @$_POST['api'] == "true" ) { echo json_encode( $api ); die(); } else {
 		showheader();
 		echo $out;
 		showform();
