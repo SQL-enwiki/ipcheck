@@ -94,5 +94,3 @@ foreach( $iprange as $ip=>$resolv ) {
 echo "<br /><br />\n";
 showform();
 showfooter();
-die();
-?>
