@@ -219,6 +219,7 @@ if( $_POST['ip'] != '' ) {
 	$ip = $_POST['ip'];
 	$out .= "<h3>Report for $ip</h3>\n";
 	$out .= "<a href='https://en.wikipedia.org/wiki/Special:Contributions/$ip'>$ip</a> ( <a href='https://tools.wmflabs.org/whois/gateway.py?lookup=true&ip=$ip'>whois</a> | <a href='https://en.wikipedia.org/wiki/User_talk:$ip'>talk</a> | <a href='https://en.wikipedia.org/wiki/Special:BlockList?wpTarget=$ip'>active blocks</a> | <a href='https://en.wikipedia.org/w/index.php?title=Special:Log&page=User%3A$ip&type=block'>block log</a> | <a href='https://en.wikipedia.org/w/index.php?title=Special:GlobalBlockList&ip=$ip'>global blocks</a> | <a href='https://en.wikipedia.org/wiki/Special:DeletedContributions/$ip'>deleted contribs</a> | <a href='https://en.wikipedia.org/w/index.php?title=Special:AbuseLog&wpSearchUser=$ip'>filter log</a> )<br /><a href='https://tools.wmflabs.org/ipcheck/index.php?ip=$ip'>Link to this page</a><br /><br />\n";
+	
 	//Proxycheck.io setup
 	$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1" ), TRUE );
 	if( @isset( $proxycheckio['error'] ) ) {
@@ -243,14 +244,15 @@ if( $_POST['ip'] != '' ) {
 		$out .= "IPQualityScore returned an error: " . $ipqualityscore['message'] . "<br />\n";
 	} else {
 		$ipqisp = $ipqualityscore['ISP'];
-		if( $ipqualityscore['proxy'] == 1 ) { $ipqproxy = "<br />&nbsp;&nbsp;&nbsp;Proxy: Yes"; } else { $ipqproxy = "<br />&nbsp;&nbsp;&nbsp;Proxy: No"; }
-		if( $ipqualityscore['vpn'] == 1 ) { $ipqvpn = "<br />&nbsp;&nbsp;&nbsp;VPN: Yes"; } else { $ipqvpn = "<br />&nbsp;&nbsp;&nbsp;VPN: No"; }
-		if( $ipqualityscore['mobile'] == 1 ) { $ipqmobile = "<br />&nbsp;&nbsp;&nbsp;Mobile: Yes"; } else { $ipqmobile = "<br />&nbsp;&nbsp;&nbsp;Mobile: No"; }
+		if( $ipqualityscore['proxy'] == 1 ) { $ipqproxy = "<br />&nbsp;&nbsp;&nbsp;Proxy: Yes"; $ipqsapiproxy = "yes"; } else { $ipqproxy = "<br />&nbsp;&nbsp;&nbsp;Proxy: No"; $ipqsapiproxy = "no"; }
+		if( $ipqualityscore['vpn'] == 1 ) { $ipqvpn = "<br />&nbsp;&nbsp;&nbsp;VPN: Yes"; $ipqsapivpn = "yes"; } else { $ipqvpn = "<br />&nbsp;&nbsp;&nbsp;VPN: No"; $ipqsapivpn = "no"; }
+		if( $ipqualityscore['mobile'] == 1 ) { $ipqmobile = "<br />&nbsp;&nbsp;&nbsp;Mobile: Yes"; $ipqsapimobile = "yes"; } else { $ipqmobile = "<br />&nbsp;&nbsp;&nbsp;Mobile: No"; $ipqsapimobile = "no"; }
 		$out .= "<a href=\"https://www.ipqualityscore.com/user/proxy-detection-api/documentation\">IPQualityScore</a> results: $ipqproxy, $ipqvpn, $ipqmobile <br />\n&nbsp;&nbsp;&nbsp;ISP: $ipqisp<br />\n";
-		$api['apis']['ipqualityscore'] = $ipqualityscore['proxy'];
-		$api['apis']['ipqualityscore'] = $ipqualityscore['ISP'];
-		$api['apis']['ipqualityscore'] = $ipqualityscore['mobile'];
-		$api['apis']['ipqualityscore'] = $ipqualityscore['vpn'];
+		$api['apis']['ipqualityscore'] = array();
+		$api['apis']['ipqualityscore']['proxy'] = $ipqsapiproxy;
+		$api['apis']['ipqualityscore']['ISP'] = $ipqualityscore['ISP'];
+		$api['apis']['ipqualityscore']['mobile'] = $ipqsapimobile;
+		$api['apis']['ipqualityscore']['vpn'] = $ipqsapivpn;
 		
 	}
 	//IPHub.info setup
