@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+{% import _self as helper %}
+
+{% macro boolValue(val) %}
+    {% if val is same as(true) %} {# data.result === true, not just truthy #}
+        <span class="text-success">
+            <strong>&check;</strong>
+        </span>
+    {% elseif val is same as(false) %}
+        <span class="text-danger">
+            <strong>&cross;</strong>
+        </span>
+    {% else %}
+        No results.
+    {% endif %}
+{% endmacro %}
+
+{% macro blockValue(val) %}
+    {% import _self as helper %}
+    {% if val == 0 %}
+        {{ helper.boolValue(false) }} Residential/Unclassified IP (i.e. safe IP)
+    {% elseif val == 1 %}
+        {{ helper.boolValue(true) }} Non-residential IP (hosting provider, proxy, etc.)
+    {% else %}
+        Non-residential &amp; residential IP (warning, may flag innocent people)
+    {% endif %}
+{% endmacro %}
+
+{% block results %}
+<hr>
+<div class="panel panel-default" style="margin-top: 20px">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <strong>{{ ip }}</strong>
+        </h3>
+    </div>
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for serviceId, data in out %}
+                    <tr id="result-{{ serviceId }}">
+                        <td>{{ data.title }}</td>
+                        <td>
+                            {##
+                             # TODO: This is all a bit messy... At some point we'll want to localize the application.
+                             # When we do this, the different keys in `data` can correspond to the i18n message key.
+                             # This way, we can refactor all the helper.boolValue stuff, since they're all the same,
+                             # and do something like:
+                             #     {% foreach key in ['proxy', 'vpn', 'mobile', ...] %}
+                             #         {% if data.result[key] is defined %}
+                             #             {{ msg(key) }}: {{ helper.boolValue(data.result[key]) }}
+                             #         {% endif %}
+                             #     {% endfor %}
+                             #}
+                            {% if data.result is iterable and data.result is not empty %}
+                                {## Things that don't use boolValue() (e.g. no tick or cross) go here #}
+                                {% if data.result.isp is defined %}
+                                    ISP: {{ data.result.isp }}<br/>
+                                {% endif %}
+
+                                {% if data.result.chance %}
+                                    {% if data.result.chance > 90 %}
+                                        {{ helper.boolValue(true) }}
+                                    {% elseif data.result.chance < 20 %}
+                                        {{ helper.boolValue(false) }}
+                                    {% endif %}
+                                    Prediction: {{ data.result.chance }}%<br/>
+                                {% endif %}
+                                {% if data.result.proxy is defined %}
+                                    {{ helper.boolValue(data.result.proxy) }} Proxy<br/>
+                                {% endif %}
+                                {% if data.result.vpn is defined %}
+                                    {{ helper.boolValue(data.result.vpn) }} VPN<br/>
+                                {% endif %}
+                                {% if data.result.mobile is defined %}
+                                    {{ helper.boolValue(data.result.mobile) }} Mobile<br/>
+                                {% endif %}
+                                {% if data.result.hosting is defined %}
+                                    {{ helper.boolValue(data.result.hosting) }} Hosting<br/>
+                                {% endif %}
+                                {% if data.result.vpnOrProxy is defined %}
+                                    {{ helper.boolValue(data.result.vpnOrProxy) }} VPN or proxy<br/>
+                                {% endif %}
+                                {% if data.result.risk is defined %}
+                                    {% if data.result.risk == 'high' %}
+                                        {{ helper.boolValue(true) }}
+                                    {% endif %}
+                                    Risk: {{ data.result.risk }}<br/>
+                                {% endif %}
+
+                                {## "Block" is sort of like a "type", so presumably there can't be both. #}
+                                {% if data.result.block is defined %}
+                                    {{ helper.blockValue(data.result.block) }}
+                                {% elseif data.result.type %}
+                                    Type: {{ data.result.type }}
+                                {% endif %}
+
+                                {## Special format for Hola (method 1) #}
+                                {% for hola in data.result.holas %}
+                                    {% if hola.port is defined %}
+                                        Port: {{ hola.port }}<br/>
+                                    {% endif %}
+                                    {% if hola.country is defined %}
+                                        Country: {{ hola.country|upper }}<br/>
+                                    {% endif %}
+                                    {% if hola.seen is defined %}
+                                        Last seen: {{ hola.seen }}<br/>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {## 'entries' are just strings. #}
+                                {% if data.result.entries is defined %}
+                                    {% if data.result.entries is empty %}
+                                        No results
+                                    {% else %}
+                                        {% for entry in data.result.entries %}
+                                            {{ entry|raw }}<br/>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endif %}
+                            {% elseif data.error is defined %}
+                                <span class="text-danger">
+                                    <strong>Error:</strong>
+                                    {{ data.error is same as(true) ? 'Uknown error. Bad IP maybe?' : data.error }}
+                                </span>
+                            {% else %}
+                                {{ helper.boolValue(data.result) }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

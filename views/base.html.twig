@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proxy API Checker</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="https://tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <main class="container">
+        <header class="col-sm-12">
+            <h1>
+                <strong>Proxy API Checker</strong>
+            </h1>
+            <hr>
+        </header>
+        <section class="col-sm-9">
+            <form action="index.php" method="get">
+                <div class="form-group">
+                    <label for="ip_input">IP address</label>
+                    <input type="text" class="form-control" id="ip_input" name="ip" placeholder="127.0.0.1" value="{{ ip }}" required>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="portscan" value="1" {% if portscan %}checked{% endif %}> Include port scanning (slow)
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+
+            {% block results %}
+            {% endblock %}
+        </section>
+        <aside class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">API sources</h3>
+                </div>
+                <div class="list-group">
+                    <a target="_blank" class="list-group-item" href="https://www.ipqualityscore.com">IPQualityScore</a>
+                    <a target="_blank" class="list-group-item" href="https://proxycheck.io">proxycheck.io</a>
+                    <a target="_blank" class="list-group-item" href="https://iphub.info">IPHub</a>
+                    <a target="_blank" class="list-group-item" href="https://getipintel.net">GetIPIntel</a>
+                    <a target="_blank" class="list-group-item" href="https://www.iphunter.info">IPHunter</a>
+                    <a target="_blank" class="list-group-item" href="https://nofraud.co">NoFraud</a>
+                    <a target="_blank" class="list-group-item" href="https://ip.teoh.io">Teoh.io</a>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">DNSBL sources</h3>
+                </div>
+                <div class="list-group">
+                    <a target="_blank" class="list-group-item" href="http://www.sorbs.net/general/using.shtml">Sorbs</a>
+                    <a target="_blank" class="list-group-item" href="https://www.spamhaus.org/zen">Spamhaus ZEN</a>
+                </div>
+            </div>
+        </aside>
+        <footer class="col-sm-12 text-center" style="padding-bottom: 15px">
+            <hr>
+            <small class="text-muted">
+                NOTE: No port scanning is done from Toolforge.
+            </small>
+            <div style="margin-top: 10px">
+                Brought to you by
+                [[<a target="_blank" href="https://en.wikipedia.org/wiki/User:SQL">User:SQL</a>]]
+                and
+                [[<a target="_blank" href="https://en.wikipedia.org/wiki/User:MusikAnimal">User:MusikAnimal</a>]]
+            </div>
+            <div>
+                <a target="_blank" href="https://github.com/SQL-enwiki/ipcheck">View source</a>
+                &middot;
+                <a target="_blank" href="https://tools.wmflabs.org/aivanalysis/queries/">More tools from SQL</a>
+            </div>
+        </footer>
+    </main>
+</body>
+</html>
