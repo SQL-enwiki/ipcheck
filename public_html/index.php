@@ -160,6 +160,8 @@ if( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
 	$out = json_decode( file_get_contents( __DIR__ . "/../cache/$ip.json" ), true );
 	if( filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 < time() ) { 
 		$refresh = TRUE; 
+	} elseif ( @!isset( $out['portscan'] ) && @$_GET['portscan'] == 1 ) {
+		$refresh = TRUE;
 	}
 } else { 
 	$refresh = TRUE; 
