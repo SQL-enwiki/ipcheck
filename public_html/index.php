@@ -204,6 +204,7 @@ if( $refresh === TRUE ) {
 		$out['getIPIntel']['error'] = $getipintel['message'];
 	} else {
 		$chance = round ( (int)$getipintel['result'] * 100, 3 );
+		if( $chance == 0 ) { $chance = number_format( $chance, 1 ); }
 		$out['getIPIntel']['result'] = [
 			'chance' => $chance,
 		];
