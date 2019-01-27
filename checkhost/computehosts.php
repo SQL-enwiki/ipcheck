@@ -1,5 +1,5 @@
 <?php
-include( "../checkhost/checkhost.php" );
+include( __DIR__ . "/../checkhost/checkhost.php" );
 
 //Amazon AWS
 $amazonraw = json_decode( file_get_contents( 'https://ip-ranges.amazonaws.com/ip-ranges.json' ), TRUE );
