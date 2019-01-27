@@ -307,12 +307,16 @@ if( $refresh === TRUE ) {
 	}
 
 	// Nofraud.co setup
-	$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
-	$chance = round( $nofraud * 100, 3 );
-	$out['noFraud']['result'] = [
-		'chance' => $chance,
-	];
-	reportHit( "nofraud" );
+	if( strpos( $ip, ":" ) === FALSE ) {
+		$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
+		$chance = round( $nofraud * 100, 3 );
+		$out['noFraud']['result'] = [
+			'chance' => $chance,
+		];
+		reportHit( "nofraud" );
+	} else {
+		$out['noFraud']['error'] = "Only IPv4 is supported";
+	}
 
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
