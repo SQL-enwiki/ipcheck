@@ -3,6 +3,7 @@
 IPCheck - Proxy Checker
 
 Live at https://tools.wmflabs.org/ipcheck/
+Development staging at https://tools.wmflabs.org/ipcheck-dev/
 
 ## Installation
 
