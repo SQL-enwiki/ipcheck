@@ -192,9 +192,9 @@ if( $refresh === TRUE ) {
 	} else {
 		$out['proxycheck']['result']['proxy'] = $proxycheckio[$ip]['proxy'] === 'yes';
 		if( $proxycheckio[$ip]['proxy'] === 'yes' ) {
-			$out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port'];
-			$out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type'];
-			$out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human'];
+			if( isset ( $proxycheckio[$ip]['last seen human'] ) ) { $out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human']; }
+			if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
+			if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
 		}
 	}
 
