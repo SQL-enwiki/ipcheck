@@ -137,7 +137,9 @@
 - Hurricane BGP Toolkit: https://bgp.he.net/
 	- Similar to ISP Rangefinder, but can help catch some hosts that it misses
 	- Can be given an IP range, and be used to find more hosts
-
+ - NativeForeigners range calculator: https://nativeforeigner.com/calc/
+ - Davidc's subnet calculator: http://www.davidc.net/sites/default/subnets/subnets.html
+ 	- I use this a lot to split ranges
 ## Addittions or errors
 
 * Everything above is based on my own personal experience, and may be completely wrong!
