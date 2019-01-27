@@ -68,6 +68,14 @@
                                     Cached: {{ data.result.cached }}<br/>
                                 {% endif %}
 
+								{% if data.result.attacks is defined %}
+                                    Attacks seen: {{ data.result.attacks }}<br/>
+                                {% endif %}
+								
+								{% if data.result.tfeeds is defined %}
+                                    Appears in threat feeds: {{ data.result.tfeeds }}<br/>
+                                {% endif %}
+
 								{% if data.result.cachedate is defined %}
                                     Retreived: {{ data.result.cachedate }}<br/>
                                 {% endif %}

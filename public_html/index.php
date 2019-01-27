@@ -198,6 +198,9 @@ if( $refresh === TRUE ) {
 		'spamhaus' => [
 			'title' => 'Spamhaus ZEN DNSBL'
 		],
+		'dshield' => [
+			'title' => 'DShield'
+		],
 		'hola' => [
 			'title' => 'Hola'
 		],
@@ -352,6 +355,21 @@ if( $refresh === TRUE ) {
 			$out['spamhaus']['result']['entries'][] = $sr[0] . " - " . $sr[1];
 		}
 	}
+
+	//DShield setup
+	$ds = file_get_contents( "https://www.dshield.org/api/ip/$ip?json" );
+	$dshield = json_decode( $ds, TRUE );
+	if( count( $dshield['ip']['attacks'] ) > 0 ) { $out['dshield']['result']['attacks'] = $dshield['ip']['attacks']; }
+	$feeds = array();
+	if( @count( $dshield['ip']['threatfeeds'] ) > 0 ) {
+        foreach( $dshield['ip']['threatfeeds'] as $feed=>$data ) {
+                $ls = $data['lastseen'];
+                $feed = $feed . " lastseen($ls)";
+                array_push( $feeds, $feed );
+        }
+        $tfeeds = implode( ", ", $feeds );
+        $out['dshield']['result']['tfeeds'] = $tfeeds;
+}
 
 	// Portscan setup
 	if( isset( $_GET['portscan'] ) ) {
