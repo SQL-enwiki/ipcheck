@@ -24,7 +24,7 @@ SOFTWARE. */
 
 require '../vendor/autoload.php';
 
-include("../credentials.php");
+include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
 
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
@@ -136,209 +136,227 @@ if ( $ip == '' ) {
     ] );
     die();
 }
-
-$out = [
-    'proxycheck' => [
-        'title' => 'proxycheck.io'
-    ],
-    'getIPIntel' => [
-        'title' => 'GetIPIntel'
-    ],
-    'ipQualityScore' => [
-        'title' => 'IPQualityScore'
-    ],
-    'ipHub' => [
-        'title' => 'IPHub'
-    ],
-    'techio' => [
-        'title' => 'Tech.io'
-    ],
-    'ipHunter' => [
-        'title' => 'IPHunter'
-    ],
-    'noFraud' => [
-        'title' => 'Nofraud'
-    ],
-	'computeHosts' => [
-        'title' => 'Compute Hosts'
-    ],
-    'sorbs' => [
-        'title' => 'SORBS DNSBL'
-    ],
-    'spamhaus' => [
-        'title' => 'Spamhaus ZEN DNSBL'
-    ],
-    'hola' => [
-        'title' => 'Hola'
-    ],
-];
-
-// Proxycheck.io setup
-$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1" ), TRUE );
-if( isset( $proxycheckio['error'] ) ) {
-    $out['proxycheck']['error'] = $proxycheckio['error'];
-} else {
-    $out['proxycheck']['result']['proxy'] = $proxycheckio[$ip]['proxy'] === 'yes';
-	if( $proxycheckio[$ip]['proxy'] === 'yes' ) {
-		$out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port'];
-		$out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type'];
-		$out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human'];
+$refresh = FALSE;
+if( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
+	$out = json_decode( file_get_contents( __DIR__ . "/../cache/$ip.json" ), true );
+	if( filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 < time() ) { 
+		$refresh = TRUE; 
 	}
+} else { 
+	$refresh = TRUE; 
 }
+if( $refresh === TRUE ) {
+	$out = [
+		'proxycheck' => [
+			'title' => 'proxycheck.io'
+		],
+		'getIPIntel' => [
+			'title' => 'GetIPIntel'
+		],
+		'ipQualityScore' => [
+			'title' => 'IPQualityScore'
+		],
+		'ipHub' => [
+			'title' => 'IPHub'
+		],
+		'techio' => [
+			'title' => 'Tech.io'
+		],
+		'ipHunter' => [
+			'title' => 'IPHunter'
+		],
+		'noFraud' => [
+			'title' => 'Nofraud'
+		],
+		'computeHosts' => [
+			'title' => 'Compute Hosts'
+		],
+		'sorbs' => [
+			'title' => 'SORBS DNSBL'
+		],
+		'spamhaus' => [
+			'title' => 'Spamhaus ZEN DNSBL'
+		],
+		'hola' => [
+			'title' => 'Hola'
+		],
+		'cache' => [
+			'title' => 'Cache'
+		]
+	];
 
-// GetIPIntel.net setup
-$getipintel = json_decode( file_get_contents( "http://check.getipintel.net/check.php?ip=$ip&contact=$email&flags=f&format=json" ), TRUE );
-if( $getipintel['status'] === "error" ) {
-    $out['getIPIntel']['error'] = $getipintel['message'];
+	// Proxycheck.io setup
+	$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1" ), TRUE );
+	if( isset( $proxycheckio['error'] ) ) {
+		$out['proxycheck']['error'] = $proxycheckio['error'];
+	} else {
+		$out['proxycheck']['result']['proxy'] = $proxycheckio[$ip]['proxy'] === 'yes';
+		if( $proxycheckio[$ip]['proxy'] === 'yes' ) {
+			$out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port'];
+			$out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type'];
+			$out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human'];
+		}
+	}
+
+	// GetIPIntel.net setup
+	$getipintel = json_decode( file_get_contents( "http://check.getipintel.net/check.php?ip=$ip&contact=$email&flags=f&format=json" ), TRUE );
+	if( $getipintel['status'] === "error" ) {
+		$out['getIPIntel']['error'] = $getipintel['message'];
+	} else {
+		$chance = round ( (int)$getipintel['result'] * 100, 3 );
+		$out['getIPIntel']['result'] = [
+			'chance' => $chance,
+		];
+	}
+
+	// IPQualityScore setup
+	$ipqualityscore = json_decode( file_get_contents( "https://www.ipqualityscore.com/api/json/ip/$ipqualityscorekey/$ip" ), TRUE );
+	if( $ipqualityscore['success'] === "false" ) {
+		$out['ipQualityScore']['error'] = $ipqualityscore['message'];
+	} else {
+		$out['ipQualityScore']['result'] = [
+			'proxy' => (bool)$ipqualityscore['proxy'],
+			'isp' => $ipqualityscore['ISP'],
+			'vpn' => (bool)$ipqualityscore['vpn'],
+			'mobile' => (bool)$ipqualityscore['mobile'],
+		];
+	}
+
+	// IPHub.info setup
+	$opts = array( 'http'=> array( 'header'=>"X-Key: $iphubkey" ) );
+	$context = stream_context_create( $opts );
+	$iphub = json_decode( file_get_contents( "http://v2.api.iphub.info/ip/$ip", FALSE, $context ), TRUE );
+	if( !is_array( $iphub ) ) {
+		$out['ipHub']['error'] = true;
+	} else {
+		$out['ipHub']['result'] = [];
+
+		if( isset( $iphub['isp'] ) ) {
+			$out['ipHub']['result']['isp'] = $iphub['isp'];
+		}
+
+		if ($iphub['block'] < 3) {
+			$out['ipHub']['result']['block'] = $iphub['block'];
+		} else {
+			$out['ipHub']['error'] = true;
+		}
+	}
+
+	// Teoh.io setup
+	$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
+	$techio = json_decode( file_get_contents( $techurl ), true );
+	$type = $techio['type'];
+	$risk = $techio['risk'];
+	$out['techio']['result'] = [
+		'hosting' => true === $techio['is_hosting'],
+		'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
+		'type' => $techio['type'],
+		'risk' => $techio['risk'],
+	];
+
+	// IPHunter.info setup
+	$opts = array( 'http'=> array( 'header'=>"X-Key: $iphunterkey" ) );
+	$context = stream_context_create( $opts );
+	$iphunter = json_decode( file_get_contents( "https://www.iphunter.info:8082/v1/ip/$ip", false, $context ), true );
+	if( $iphunter['status'] === "error" ) {
+		$out['ipHunter']['error'] = true;
+	} else {
+		$out['ipHunter']['result'] = [];
+
+		if ( isset( $iphunter['data']['isp'] ) ) {
+			$out['ipHunter']['result']['isp'] = $iphunter['data']['isp'];
+		}
+
+		if ($iphunter['data']['block'] < 3) {
+			$out['ipHunter']['result']['block'] = $iphunter['data']['block'];
+		} else {
+			$out['ipHunter']['error'] = true;
+		}
+	}
+
+	// Nofraud.co setup
+	$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
+	$chance = round( $nofraud * 100, 3 );
+	$out['noFraud']['result'] = [
+		'chance' => $chance,
+	];
+
+	//Check for google compute, amazon aws, and microsoft azure
+	$check = checkCompute( $ip );
+	$cRes = "";
+	if( $check !== FALSE ) { 
+		$chisp = $check['service'];
+		$range = $check['range'];
+		if( $chisp == "google" ) { $chisp = "Google Cloud"; }
+		if( $chisp == "azure" ) { $chisp = "Microsoft Azure"; }
+		if( $chisp == "amazon" ) { $chisp = "Amazon AWS"; }
+	} else {
+		$chisp .= "This IP is not an AWS/Azure/GoogleCloud node.\n";
+	}
+	$out['computeHosts']['result'] = [
+		'cloud' => $chisp,
+	];
+
+
+	// Check Sorbs setup
+	$sorbsResult = checkSorbs( $ip );
+	if( $sorbsResult !== false ) {
+		$out['sorbs']['result']['entries'] = [];
+		foreach( $sorbsResult as $sr ) {
+			$out['sorbs']['result']['entries'][] = $sr[0] . " - " . $sr[1];
+		}
+	}
+
+	// Check Spamhaus setup
+	$spamhausResult = checkSpamhaus( $ip );
+	if( $spamhausResult !== false ) {
+		$out['spamhaus']['result']['entries'] = [];
+		foreach( $spamhausResult as $sr ) {
+			$out['spamhaus']['result']['entries'][] = $sr[0] . " - " . $sr[1];
+		}
+	}
+
+	// Portscan setup
+	if( isset( $_GET['portscan'] ) ) {
+		$out['portscan'] = [
+			'title' => 'Open ports'
+		];
+		$porturl = $purl . "$ip&auth=$auth";
+		$ch = curl_init( $porturl );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+		$scanres = json_decode( curl_exec( $ch ), true );
+		$scandate = $scanres['date'];
+		unset( $scanres['date'] );
+		$out['portscan']['result']['entries'] = $scanres;
+	}
+
+	$m1_hola = json_decode( file_get_contents( __DIR__ . "/../sources/proxies.json" ), true );
+	$m2_hola = json_decode( file_get_contents( __DIR__ . "/../sources/hola_dns.json" ), true );
+
+	/* Hola - Method 1 */
+	foreach( $m1_hola as $h ) {
+		if( $ip == $h['ip'] ) {
+			$out['hola']['result']['holas'][] = [
+				'port' => $h['info']['port'],
+				'country' => $h['country'],
+			];
+		}
+	}
+
+	/* Hola - Method 2 */
+	foreach( $m2_hola as $h ) {
+		if( $ip == $h['ip'] ) {
+			$out['hola']['result']['holas'][] = [
+				'seen' => date( "F d, Y", $h['seen'] ),
+			];
+		}
+	}
+	$out['cache']['result']['cached'] = 'no';
+	file_put_contents( __DIR__ . "/../cache/$ip.json", json_encode( $out ) );
 } else {
-    $chance = round ( (int)$getipintel['result'] * 100, 3 );
-    $out['getIPIntel']['result'] = [
-        'chance' => $chance,
-    ];
-}
-
-// IPQualityScore setup
-$ipqualityscore = json_decode( file_get_contents( "https://www.ipqualityscore.com/api/json/ip/$ipqualityscorekey/$ip" ), TRUE );
-if( $ipqualityscore['success'] === "false" ) {
-    $out['ipQualityScore']['error'] = $ipqualityscore['message'];
-} else {
-    $out['ipQualityScore']['result'] = [
-        'proxy' => (bool)$ipqualityscore['proxy'],
-        'isp' => $ipqualityscore['ISP'],
-        'vpn' => (bool)$ipqualityscore['vpn'],
-        'mobile' => (bool)$ipqualityscore['mobile'],
-    ];
-}
-
-// IPHub.info setup
-$opts = array( 'http'=> array( 'header'=>"X-Key: $iphubkey" ) );
-$context = stream_context_create( $opts );
-$iphub = json_decode( file_get_contents( "http://v2.api.iphub.info/ip/$ip", FALSE, $context ), TRUE );
-if( !is_array( $iphub ) ) {
-    $out['ipHub']['error'] = true;
-} else {
-    $out['ipHub']['result'] = [];
-
-    if( isset( $iphub['isp'] ) ) {
-        $out['ipHub']['result']['isp'] = $iphub['isp'];
-    }
-
-    if ($iphub['block'] < 3) {
-        $out['ipHub']['result']['block'] = $iphub['block'];
-    } else {
-        $out['ipHub']['error'] = true;
-    }
-}
-
-// Teoh.io setup
-$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
-$techio = json_decode( file_get_contents( $techurl ), true );
-$type = $techio['type'];
-$risk = $techio['risk'];
-$out['techio']['result'] = [
-    'hosting' => true === $techio['is_hosting'],
-    'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
-    'type' => $techio['type'],
-    'risk' => $techio['risk'],
-];
-
-// IPHunter.info setup
-$opts = array( 'http'=> array( 'header'=>"X-Key: $iphunterkey" ) );
-$context = stream_context_create( $opts );
-$iphunter = json_decode( file_get_contents( "https://www.iphunter.info:8082/v1/ip/$ip", false, $context ), true );
-if( $iphunter['status'] === "error" ) {
-    $out['ipHunter']['error'] = true;
-} else {
-    $out['ipHunter']['result'] = [];
-
-    if ( isset( $iphunter['data']['isp'] ) ) {
-        $out['ipHunter']['result']['isp'] = $iphunter['data']['isp'];
-    }
-
-    if ($iphunter['data']['block'] < 3) {
-        $out['ipHunter']['result']['block'] = $iphunter['data']['block'];
-    } else {
-        $out['ipHunter']['error'] = true;
-    }
-}
-
-// Nofraud.co setup
-$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
-$chance = round( $nofraud * 100, 3 );
-$out['noFraud']['result'] = [
-    'chance' => $chance,
-];
-
-//Check for google compute, amazon aws, and microsoft azure
-$check = checkCompute( $ip );
-$cRes = "";
-if( $check !== FALSE ) { 
-	$chisp = $check['service'];
-	$range = $check['range'];
-	if( $chisp == "google" ) { $chisp = "Google Cloud"; }
-	if( $chisp == "azure" ) { $chisp = "Microsoft Azure"; }
-	if( $chisp == "amazon" ) { $chisp = "Amazon AWS"; }
-} else {
-	$chisp .= "This IP is not an AWS/Azure/GoogleCloud node.\n";
-}
-$out['computeHosts']['result'] = [
-    'cloud' => $chisp,
-];
-
-
-// Check Sorbs setup
-$sorbsResult = checkSorbs( $ip );
-if( $sorbsResult !== false ) {
-    $out['sorbs']['result']['entries'] = [];
-    foreach( $sorbsResult as $sr ) {
-        $out['sorbs']['result']['entries'][] = $sr[0] . " - " . $sr[1];
-    }
-}
-
-// Check Spamhaus setup
-$spamhausResult = checkSpamhaus( $ip );
-if( $spamhausResult !== false ) {
-    $out['spamhaus']['result']['entries'] = [];
-    foreach( $spamhausResult as $sr ) {
-        $out['spamhaus']['result']['entries'][] = $sr[0] . " - " . $sr[1];
-    }
-}
-
-// Portscan setup
-if( isset( $_GET['portscan'] ) ) {
-    $out['portscan'] = [
-        'title' => 'Open ports'
-    ];
-    $porturl = $purl . "$ip&auth=$auth";
-    // $scanres = json_decode( file_get_contents( $porturl ), true ); // cURL is better. Weird errors with file_get_contents.
-    $ch = curl_init( $porturl );
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-    $scanres = json_decode( curl_exec( $ch ), true );
-    $scandate = $scanres['date'];
-    unset( $scanres['date'] );
-    $out['portscan']['result']['entries'] = $scanres;
-}
-
-$m1_hola = json_decode( file_get_contents( __DIR__ . "/../proxies.json" ), true );
-$m2_hola = json_decode( file_get_contents( __DIR__ . "/../hola_dns.json" ), true );
-
-/* Hola - Method 1 */
-foreach( $m1_hola as $h ) {
-    if( $ip == $h['ip'] ) {
-        $out['hola']['result']['holas'][] = [
-            'port' => $h['info']['port'],
-            'country' => $h['country'],
-        ];
-    }
-}
-
-/* Hola - Method 2 */
-foreach( $m2_hola as $h ) {
-    if( $ip == $h['ip'] ) {
-        $out['hola']['result']['holas'][] = [
-            'seen' => date( "F d, Y", $h['seen'] ),
-        ];
-    }
+	$out['cache']['result']['cached'] = 'yes';
+	$out['cache']['result']['cachedate'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) );
+	$out['cache']['result']['cacheuntil'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 );
 }
 
 if( isset( $_GET['api'] ) ) {
