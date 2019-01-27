@@ -63,7 +63,19 @@
                                 {% if data.result.isp is defined %}
                                     ISP: {{ data.result.isp }}<br/>
                                 {% endif %}
-
+								
+								{% if data.result.pctype is defined %}
+                                    Type: {{ data.result.pctype }}<br/>
+                                {% endif %}
+								{% if data.result.port is defined %}
+                                    Port: {{ data.result.port }}<br/>
+                                {% endif %}
+								{% if data.result.seen is defined %}
+                                    Last Seen: {{ data.result.seen }}<br/>
+                                {% endif %}
+								{% if data.result.cloud is defined %}
+                                    <b>{{ data.result.cloud }}</b><br/>
+                                {% endif %}
                                 {% if data.result.chance %}
                                     {% if data.result.chance > 90 %}
                                         {{ helper.boolValue(true) }}

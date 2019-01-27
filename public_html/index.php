@@ -25,6 +25,7 @@ SOFTWARE. */
 require '../vendor/autoload.php';
 
 include("../credentials.php");
+include( "../checkhost/checkhost.php" );
 
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
@@ -158,6 +159,9 @@ $out = [
     'noFraud' => [
         'title' => 'Nofraud'
     ],
+	'computeHosts' => [
+        'title' => 'Compute Hosts'
+    ],
     'sorbs' => [
         'title' => 'SORBS DNSBL'
     ],
@@ -170,11 +174,16 @@ $out = [
 ];
 
 // Proxycheck.io setup
-$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1" ), TRUE );
+$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1" ), TRUE );
 if( isset( $proxycheckio['error'] ) ) {
     $out['proxycheck']['error'] = $proxycheckio['error'];
 } else {
-    $out['proxycheck']['result'] = $proxycheckio[$ip]['proxy'] === 'yes';
+    $out['proxycheck']['result']['proxy'] = $proxycheckio[$ip]['proxy'] === 'yes';
+	if( $proxycheckio[$ip]['proxy'] === 'yes' ) {
+		$out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port'];
+		$out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type'];
+		$out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human'];
+	}
 }
 
 // GetIPIntel.net setup
@@ -259,6 +268,23 @@ $chance = round( $nofraud * 100, 3 );
 $out['noFraud']['result'] = [
     'chance' => $chance,
 ];
+
+//Check for google compute, amazon aws, and microsoft azure
+$check = checkCompute( $ip );
+$cRes = "";
+if( $check !== FALSE ) { 
+	$chisp = $check['service'];
+	$range = $check['range'];
+	if( $chisp == "google" ) { $chisp = "Google Cloud"; }
+	if( $chisp == "azure" ) { $chisp = "Microsoft Azure"; }
+	if( $chisp == "amazon" ) { $chisp = "Amazon AWS"; }
+} else {
+	$chisp .= "This IP is not an AWS/Azure/GoogleCloud node.\n";
+}
+$out['computeHosts']['result'] = [
+    'cloud' => $chisp,
+];
+
 
 // Check Sorbs setup
 $sorbsResult = checkSorbs( $ip );

@@ -37,7 +37,7 @@ function cidr_match6( $ip, $cidr ) {
 
 //Check to see if the host is in the compute JSON list
 function checkCompute( $ip ) {
-	$ranges = json_decode( file_get_contents( "/data/project/ipcheck/whsrc/computehosts.json" ), TRUE );
+	$ranges = json_decode( file_get_contents( "../checkhost/computehosts.json" ), TRUE );
 	$match = FALSE;
 	foreach( $ranges as $range ) {
 		$r = $range['range'];
