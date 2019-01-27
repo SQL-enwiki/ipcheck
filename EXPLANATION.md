@@ -1,4 +1,4 @@
-# Interperting Results
+# Interpreting Results
 
 ## Proxycheck.io
 
