@@ -64,18 +64,38 @@
                                     ISP: {{ data.result.isp }}<br/>
                                 {% endif %}
 								
+								{% if data.result.cached is defined %}
+                                    Cached: {{ data.result.cached }}<br/>
+                                {% endif %}
+
+								{% if data.result.cachedate is defined %}
+                                    Retreived: {{ data.result.cachedate }}<br/>
+                                {% endif %}
+								
+								{% if data.result.cacheuntil is defined %}
+                                    Cached until: {{ data.result.cacheuntil }}<br/>
+                                {% endif %}
+								
 								{% if data.result.pctype is defined %}
                                     Type: {{ data.result.pctype }}<br/>
                                 {% endif %}
+								
 								{% if data.result.port is defined %}
                                     Port: {{ data.result.port }}<br/>
                                 {% endif %}
+								
 								{% if data.result.seen is defined %}
                                     Last Seen: {{ data.result.seen }}<br/>
                                 {% endif %}
+								
 								{% if data.result.cloud is defined %}
                                     <b>{{ data.result.cloud }}</b><br/>
                                 {% endif %}
+								
+								{% if data.cache is defined %}
+                                    Cached: {{ data.cache }}<br/>
+                                {% endif %}
+								
                                 {% if data.result.chance %}
                                     {% if data.result.chance > 90 %}
                                         {{ helper.boolValue(true) }}
