@@ -94,5 +94,5 @@ foreach( $exp as $e ) {
 	}
 }
 $computeranges = array_map("unserialize", array_unique(array_map("serialize", $computeranges)));
-file_put_contents( "/data/project/ipcheck/whsrc/computehosts.json", json_encode( $computeranges ) );
+file_put_contents( __DIR__ . "/../sources/computehosts.json", json_encode( $computeranges ) );
 ?>
