@@ -31,6 +31,23 @@ $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
 $twig->addExtension(new Twig_Extension_Debug());
 
+function reportHit( $service ) {
+	//Record monthly stats on how many hits to each API service we're using.
+	if( !file_exists( __DIR__ . "/../stats" ) ) {
+		mkdir( __DIR__ . "/../stats" );
+	}
+	if( !file_exists( __DIR__ . "/../stats/$service" ) ) {
+		mkdir( __DIR__ . "/../stats/$service" );
+	}
+	if( file_exists( __DIR__ . "/../stats/$service/" . date( "Ym" ) . ".json" ) ) {
+		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service/" . date( "Ym" ) . ".json" ), TRUE );
+		$stat++;
+	} else {
+		$stat = 1;
+	}
+	file_put_contents( __DIR__ . "/../stats/$service/" . date( "Ym" ) . ".json", json_encode( $stat ) );
+}
+
 function checkSpamhaus( $ip ) {
     //Check spamhaus ZEN DNSBL, more information at https://www.spamhaus.org/zen/
     $origip = $ip;
@@ -72,6 +89,7 @@ function checkSpamhaus( $ip ) {
             array_push( $spamhaus_result, $results );
         }
     }
+	reportHit( "spamhaus" );
     return( $spamhaus_result );
 }
 
@@ -124,6 +142,7 @@ function checkSorbs( $ip ) {
             array_push( $sorbs_result, $results );
         }
     }
+	reportHit( "sorbs" );
     return( $sorbs_result );
 }
 
@@ -196,6 +215,7 @@ if( $refresh === TRUE ) {
 			if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
 			if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
 		}
+		reportHit( "proxycheck-io" );
 	}
 
 	// GetIPIntel.net setup
@@ -208,6 +228,7 @@ if( $refresh === TRUE ) {
 		$out['getIPIntel']['result'] = [
 			'chance' => $chance,
 		];
+		reportHit( "getipintel" );
 	}
 
 	// IPQualityScore setup
@@ -221,6 +242,7 @@ if( $refresh === TRUE ) {
 			'vpn' => (bool)$ipqualityscore['vpn'],
 			'mobile' => (bool)$ipqualityscore['mobile'],
 		];
+		reportHit( "ipqs" );
 	}
 
 	// IPHub.info setup
@@ -241,19 +263,25 @@ if( $refresh === TRUE ) {
 		} else {
 			$out['ipHub']['error'] = true;
 		}
+		reportHit( "iphub" );
 	}
 
 	// Teoh.io setup
 	$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
 	$techio = json_decode( file_get_contents( $techurl ), true );
-	$type = $techio['type'];
-	$risk = $techio['risk'];
-	$out['techio']['result'] = [
-		'hosting' => true === $techio['is_hosting'],
-		'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
-		'type' => $techio['type'],
-		'risk' => $techio['risk'],
-	];
+	if( @!isset( $techio['ip'] ) ) {
+		$out['techio']['error'] = true;
+	} else {
+		$type = $techio['type'];
+		$risk = $techio['risk'];
+		$out['techio']['result'] = [
+			'hosting' => true === $techio['is_hosting'],
+			'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
+			'type' => $techio['type'],
+			'risk' => $techio['risk'],
+		];
+		reportHit( "teoh" );
+	}
 
 	// IPHunter.info setup
 	$opts = array( 'http'=> array( 'header'=>"X-Key: $iphunterkey" ) );
@@ -273,6 +301,7 @@ if( $refresh === TRUE ) {
 		} else {
 			$out['ipHunter']['error'] = true;
 		}
+		reportHit( "iphunter" );
 	}
 
 	// Nofraud.co setup
@@ -281,6 +310,7 @@ if( $refresh === TRUE ) {
 	$out['noFraud']['result'] = [
 		'chance' => $chance,
 	];
+	reportHit( "nofraud" );
 
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
