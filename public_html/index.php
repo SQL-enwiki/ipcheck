@@ -129,7 +129,7 @@ function checkSorbs( $ip ) {
 
 $ip = $_GET['ip'];
 
-if ( $ip == '' ) {
+if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     echo $twig->render( 'base.html.twig', [
         'ip' => '',
         'portscan' => isset( $_GET['portscan'] ),
@@ -291,7 +291,7 @@ if( $refresh === TRUE ) {
 		if( $chisp == "azure" ) { $chisp = "Microsoft Azure"; }
 		if( $chisp == "amazon" ) { $chisp = "Amazon AWS"; }
 	} else {
-		$chisp .= "This IP is not an AWS/Azure/GoogleCloud node.\n";
+		$chisp = "This IP is not an AWS/Azure/GoogleCloud node.\n";
 	}
 	$out['computeHosts']['result'] = [
 		'cloud' => $chisp,
