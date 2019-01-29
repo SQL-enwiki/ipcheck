@@ -31,6 +31,8 @@ $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
 $twig->addExtension(new Twig_Extension_Debug());
 
+$currentver = substr( file_get_contents( __DIR__. '/../.git/refs/heads/master' ), 0, 7 );
+
 function reportHit( $service ) {
 	//Record monthly stats on how many hits to each API service we're using.
 	$min = date( "YMdGi" );
@@ -195,6 +197,7 @@ $ip = $_GET['ip'];
 if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     echo $twig->render( 'base.html.twig', [
         'ip' => '',
+		'currentver' => $currentver,
         'portscan' => isset( $_GET['portscan'] ),
     ] );
     die();
@@ -481,6 +484,7 @@ if( isset( $_GET['api'] ) ) {
 } else {
     echo $twig->render( 'results.html.twig', [
         'hostname' => $hostname,
+		'currentver' => $currentver,
 		'ip' => $ip,
         'out' => $out,
         'portscan' => isset( $_GET['portscan'] ),
