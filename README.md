@@ -14,3 +14,8 @@ Requires PHP 7.2.
 1. `cd public_html && php -S localhost:8000`
 
 You should now be up and running at http://localhost:8000
+
+## Interpreting results
+
+* There are some tips / hints at [EXPLANATION.md](EXPLANATION.md)
+  * Please don't hesitate to send a pull request for this file!
