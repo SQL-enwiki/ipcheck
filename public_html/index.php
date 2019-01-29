@@ -33,19 +33,65 @@ $twig->addExtension(new Twig_Extension_Debug());
 
 function reportHit( $service ) {
 	//Record monthly stats on how many hits to each API service we're using.
+	$min = date( "YMdGi" );
+	$day = date( "YMd" );
+	$month = date( "YM" );
 	if( !file_exists( __DIR__ . "/../stats" ) ) {
 		mkdir( __DIR__ . "/../stats" );
 	}
-	if( !file_exists( __DIR__ . "/../stats/$service" ) ) {
-		mkdir( __DIR__ . "/../stats/$service" );
-	}
-	if( file_exists( __DIR__ . "/../stats/$service/" . date( "Ym" ) . ".json" ) ) {
-		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service/" . date( "Ym" ) . ".json" ), TRUE );
-		$stat++;
+	if( file_exists( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ) !== FALSE ) {
+		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ), TRUE );
+		$stat['raw']++;
+		$stat['month'] = $month;
+		$stat['day'] = $day;
+		$stat['min'] = $min;
+		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
+		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
+		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
 	} else {
-		$stat = 1;
+		$stat['raw'] = 1;
+		$stat['month'] = $month;
+		$stat['day'] = $day;
+		$stat['min'] = $min;
+		$stat['rmonth'] = 1;
+		$stat['rday'] = 1;
+		$stat['rmin'] = 1;
 	}
-	file_put_contents( __DIR__ . "/../stats/$service/" . date( "Ym" ) . ".json", json_encode( $stat ) );
+	//Set up limits
+	$lservice['getipintel'] = array( 'type' => 'min', 'limit' => 15, 'type2' => 'day', 'limit2' => 500 );
+	$lservice['iphub'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
+	$lservice['iphunter'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
+	$lservice['ipqs'] = array( 'type' => 'month', 'limit' => 5000, 'type2' => 'month', 'limit2' => 5000 );
+	$lservice['nofraud'] = array( 'type' => 'day', 'limit' => 600, 'type2' => 'day', 'limit2' => 600 );
+	$lservice['proxycheck-io'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
+	$lservice['sorbs'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
+	$lservice['spamhaus'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
+	$lservice['teoh'] = array( 'type' => 'day', 'limit' => 5000, 'type2' => 'day', 'limit2' => 5000 );
+	$lservice['dshield'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
+	
+	//Check first limit
+	if( $lservice[$service]['type'] == 'min' ) { 
+		if( $stat['rmin'] > $lservice[$service]['limit'] ) { return TRUE; }
+	} 
+	if( $lservice[$service]['type'] == 'day' ) { 
+		if( $stat['rday'] > $lservice[$service]['limit'] ) { return TRUE; }
+	} 
+	if( $lservice[$service]['type'] == 'month' ) { 
+		if( $stat['rmonth'] > $lservice[$service]['limit'] ) { return TRUE; }
+	} 	
+	
+	//Check second limit
+	if( $lservice[$service]['type2'] == 'min' ) { 
+		if( $stat['rmin'] > $lservice[$service]['limit2'] ) { return TRUE; }
+	} 
+	if( $lservice[$service]['type2'] == 'day' ) { 
+		if( $stat['rday'] > $lservice[$service]['limit2'] ) { return TRUE; }
+	} 
+	if( $lservice[$service]['type2'] == 'month' ) { 
+		if( $stat['rmonth'] > $lservice[$service]['limit2'] ) { return TRUE; }
+	} 		
+	file_put_contents( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json", json_encode( $stat ) );
+	return( FALSE );
 }
 
 function checkSpamhaus( $ip ) {
@@ -89,7 +135,6 @@ function checkSpamhaus( $ip ) {
             array_push( $spamhaus_result, $results );
         }
     }
-	reportHit( "spamhaus" );
     return( $spamhaus_result );
 }
 
@@ -210,117 +255,124 @@ if( $refresh === TRUE ) {
 	];
 
 	// Proxycheck.io setup
-	$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1" ), TRUE );
-	if( isset( $proxycheckio['error'] ) ) {
-		$out['proxycheck']['error'] = $proxycheckio['error'];
-	} else {
-		$out['proxycheck']['result']['proxy'] = $proxycheckio[$ip]['proxy'] === 'yes';
-		if( $proxycheckio[$ip]['proxy'] === 'yes' ) {
-			if( isset ( $proxycheckio[$ip]['last seen human'] ) ) { $out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human']; }
-			if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
-			if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
+	if( reportHit( "proxycheck-io" ) === TRUE ) { $out['proxycheck']['error'] = "API Queries exceeded. Try back later."; } else {
+		$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1" ), TRUE );
+		if( isset( $proxycheckio['error'] ) ) {
+			$out['proxycheck']['error'] = $proxycheckio['error'];
+		} else {
+			$out['proxycheck']['result']['proxy'] = $proxycheckio[$ip]['proxy'] === 'yes';
+			if( $proxycheckio[$ip]['proxy'] === 'yes' ) {
+				if( isset ( $proxycheckio[$ip]['last seen human'] ) ) { $out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human']; }
+				if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
+				if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
+			}
 		}
-		reportHit( "proxycheck-io" );
 	}
-
+	
 	// GetIPIntel.net setup
-	$getipintel = json_decode( file_get_contents( "http://check.getipintel.net/check.php?ip=$ip&contact=$email&flags=f&format=json" ), TRUE );
-	if( $getipintel['status'] === "error" ) {
-		$out['getIPIntel']['error'] = $getipintel['message'];
-	} else {
-		$chance = round ( (int)$getipintel['result'] * 100, 3 );
-		if( $chance == 0 ) { $chance = number_format( $chance, 1 ); }
-		$out['getIPIntel']['result'] = [
-			'chance' => $chance,
-		];
-		reportHit( "getipintel" );
+	if( reportHit( "getipintel" ) === TRUE ) { $out['getipintel']['error'] = "API Queries exceeded. Try back later."; } else {
+		$getipintel = json_decode( file_get_contents( "http://check.getipintel.net/check.php?ip=$ip&contact=$email&flags=f&format=json" ), TRUE );
+		if( $getipintel['status'] === "error" ) {
+			$out['getIPIntel']['error'] = $getipintel['message'];
+		} else {
+			$chance = round ( (int)$getipintel['result'] * 100, 3 );
+			if( $chance == 0 ) { $chance = number_format( $chance, 1 ); }
+			$out['getIPIntel']['result'] = [
+				'chance' => $chance,
+			];
+		}
 	}
 
 	// IPQualityScore setup
-	$ipqualityscore = json_decode( file_get_contents( "https://www.ipqualityscore.com/api/json/ip/$ipqualityscorekey/$ip" ), TRUE );
-	if( $ipqualityscore['success'] === "false" ) {
-		$out['ipQualityScore']['error'] = $ipqualityscore['message'];
-	} else {
-		$out['ipQualityScore']['result'] = [
-			'proxy' => (bool)$ipqualityscore['proxy'],
-			'isp' => $ipqualityscore['ISP'],
-			'vpn' => (bool)$ipqualityscore['vpn'],
-			'mobile' => (bool)$ipqualityscore['mobile'],
-		];
-		reportHit( "ipqs" );
+	if( reportHit( "ipqs" ) === TRUE ) { $out['ipqs']['error'] = "API Queries exceeded. Try back later."; } else {
+		$ipqualityscore = json_decode( file_get_contents( "https://www.ipqualityscore.com/api/json/ip/$ipqualityscorekey/$ip" ), TRUE );
+		if( $ipqualityscore['success'] === "false" ) {
+			$out['ipQualityScore']['error'] = $ipqualityscore['message'];
+		} else {
+			$out['ipQualityScore']['result'] = [
+				'proxy' => (bool)$ipqualityscore['proxy'],
+				'isp' => $ipqualityscore['ISP'],
+				'vpn' => (bool)$ipqualityscore['vpn'],
+				'mobile' => (bool)$ipqualityscore['mobile'],
+			];
+		}
 	}
 
 	// IPHub.info setup
-	$opts = array( 'http'=> array( 'header'=>"X-Key: $iphubkey" ) );
-	$context = stream_context_create( $opts );
-	$iphub = json_decode( file_get_contents( "http://v2.api.iphub.info/ip/$ip", FALSE, $context ), TRUE );
-	if( !is_array( $iphub ) ) {
-		$out['ipHub']['error'] = true;
-	} else {
-		$out['ipHub']['result'] = [];
-
-		if( isset( $iphub['isp'] ) ) {
-			$out['ipHub']['result']['isp'] = $iphub['isp'];
-		}
-
-		if ($iphub['block'] < 3) {
-			$out['ipHub']['result']['block'] = $iphub['block'];
-		} else {
+	if( reportHit( "iphub" ) === TRUE ) { $out['iphub']['error'] = "API Queries exceeded. Try back later."; } else {
+		$opts = array( 'http'=> array( 'header'=>"X-Key: $iphubkey" ) );
+		$context = stream_context_create( $opts );
+		$iphub = json_decode( file_get_contents( "http://v2.api.iphub.info/ip/$ip", FALSE, $context ), TRUE );
+		if( !is_array( $iphub ) ) {
 			$out['ipHub']['error'] = true;
-		}
-		reportHit( "iphub" );
-	}
+		} else {
+			$out['ipHub']['result'] = [];
 
+			if( isset( $iphub['isp'] ) ) {
+				$out['ipHub']['result']['isp'] = $iphub['isp'];
+			}
+
+			if ($iphub['block'] < 3) {
+				$out['ipHub']['result']['block'] = $iphub['block'];
+			} else {
+				$out['ipHub']['error'] = true;
+			}
+		}
+	}
+	
 	// Teoh.io setup
-	$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
-	$techio = json_decode( file_get_contents( $techurl ), true );
-	if( @!isset( $techio['ip'] ) ) {
-		$out['techio']['error'] = true;
-	} else {
-		$type = $techio['type'];
-		$risk = $techio['risk'];
-		$out['techio']['result'] = [
-			'hosting' => true === $techio['is_hosting'],
-			'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
-			'type' => $techio['type'],
-			'risk' => $techio['risk'],
-		];
-		reportHit( "teoh" );
+	if( reportHit( "teoh" ) === TRUE ) { $out['teoh']['error'] = "API Queries exceeded. Try back later."; } else {
+		$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
+		$techio = json_decode( file_get_contents( $techurl ), true );
+		if( @!isset( $techio['ip'] ) ) {
+			$out['techio']['error'] = true;
+		} else {
+			$type = $techio['type'];
+			$risk = $techio['risk'];
+			$out['techio']['result'] = [
+				'hosting' => true === $techio['is_hosting'],
+				'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
+				'type' => $techio['type'],
+				'risk' => $techio['risk'],
+			];
+		}
 	}
 
 	// IPHunter.info setup
-	$opts = array( 'http'=> array( 'header'=>"X-Key: $iphunterkey" ) );
-	$context = stream_context_create( $opts );
-	$iphunter = json_decode( file_get_contents( "https://www.iphunter.info:8082/v1/ip/$ip", false, $context ), true );
-	if( $iphunter['status'] === "error" ) {
-		$out['ipHunter']['error'] = true;
-	} else {
-		$out['ipHunter']['result'] = [];
-
-		if ( isset( $iphunter['data']['isp'] ) ) {
-			$out['ipHunter']['result']['isp'] = $iphunter['data']['isp'];
-		}
-
-		if ($iphunter['data']['block'] < 3) {
-			$out['ipHunter']['result']['block'] = $iphunter['data']['block'];
-		} else {
+	if( reportHit( "iphunter" ) === TRUE ) { $out['nofraud']['error'] = "API Queries exceeded. Try back later."; } else {
+		$opts = array( 'http'=> array( 'header'=>"X-Key: $iphunterkey" ) );
+		$context = stream_context_create( $opts );
+		$iphunter = json_decode( file_get_contents( "https://www.iphunter.info:8082/v1/ip/$ip", false, $context ), true );
+		if( $iphunter['status'] === "error" ) {
 			$out['ipHunter']['error'] = true;
+		} else {
+			$out['ipHunter']['result'] = [];
+
+			if ( isset( $iphunter['data']['isp'] ) ) {
+				$out['ipHunter']['result']['isp'] = $iphunter['data']['isp'];
+			}
+
+			if ($iphunter['data']['block'] < 3) {
+				$out['ipHunter']['result']['block'] = $iphunter['data']['block'];
+			} else {
+				$out['ipHunter']['error'] = true;
+			}
 		}
-		reportHit( "iphunter" );
 	}
-
+	
 	// Nofraud.co setup
-	if( strpos( $ip, ":" ) === FALSE ) {
-		$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
-		$chance = round( $nofraud * 100, 3 );
-		$out['noFraud']['result'] = [
-			'chance' => $chance,
-		];
-		reportHit( "nofraud" );
-	} else {
-		$out['noFraud']['error'] = "Only IPv4 is supported";
+	if( reportHit( "nofraud" ) === TRUE ) { $out['nofraud']['error'] = "API Queries exceeded. Try back later."; } else {
+		if( strpos( $ip, ":" ) === FALSE ) {
+			$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
+			$chance = round( $nofraud * 100, 3 );
+			$out['noFraud']['result'] = [
+				'chance' => $chance,
+			];
+		} else {
+			$out['noFraud']['error'] = "Only IPv4 is supported";
+		}
 	}
-
+	
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
 	$cRes = "";
@@ -339,52 +391,60 @@ if( $refresh === TRUE ) {
 
 
 	// Check Sorbs setup
-	$sorbsResult = checkSorbs( $ip );
-	if( $sorbsResult !== false ) {
-		$out['sorbs']['result']['entries'] = [];
-		foreach( $sorbsResult as $sr ) {
-			$out['sorbs']['result']['entries'][] = $sr[0] . " - " . $sr[1];
+	if( reportHit( "sorbs" ) === TRUE ) { $out['sorbs']['error'] = "API Queries exceeded. Try back later."; } else {
+		$sorbsResult = checkSorbs( $ip );
+		if( $sorbsResult !== false ) {
+			$out['sorbs']['result']['entries'] = [];
+			foreach( $sorbsResult as $sr ) {
+				$out['sorbs']['result']['entries'][] = $sr[0] . " - " . $sr[1];
+			}
 		}
 	}
-
+	
 	// Check Spamhaus setup
-	$spamhausResult = checkSpamhaus( $ip );
-	if( $spamhausResult !== false ) {
-		$out['spamhaus']['result']['entries'] = [];
-		foreach( $spamhausResult as $sr ) {
-			$out['spamhaus']['result']['entries'][] = $sr[0] . " - " . $sr[1];
+	if( reportHit( "spamhaus" ) === TRUE ) { $out['spamhaus']['error'] = "API Queries exceeded. Try back later."; } else {
+		$spamhausResult = checkSpamhaus( $ip );
+		if( $spamhausResult !== false ) {
+			$out['spamhaus']['result']['entries'] = [];
+			foreach( $spamhausResult as $sr ) {
+				$out['spamhaus']['result']['entries'][] = $sr[0] . " - " . $sr[1];
+			}
 		}
 	}
-
+	
 	//DShield setup
-	$ds = file_get_contents( "https://www.dshield.org/api/ip/$ip?json" );
-	$dshield = json_decode( $ds, TRUE );
-	if( count( $dshield['ip']['attacks'] ) > 0 ) { $out['dshield']['result']['attacks'] = $dshield['ip']['attacks']; }
-	$feeds = array();
-	if( @count( $dshield['ip']['threatfeeds'] ) > 0 ) {
-        foreach( $dshield['ip']['threatfeeds'] as $feed=>$data ) {
-                $ls = $data['lastseen'];
-                $feed = $feed . " lastseen($ls)";
-                array_push( $feeds, $feed );
-        }
-        $tfeeds = implode( ", ", $feeds );
-        $out['dshield']['result']['tfeeds'] = $tfeeds;
-}
+	if( reportHit( "dshield" ) === TRUE ) { $out['dshield']['error'] = "API Queries exceeded. Try back later."; } else {
+		$ds = file_get_contents( "https://www.dshield.org/api/ip/$ip?json" );
+		$dshield = json_decode( $ds, TRUE );
+		if( @count( $dshield['ip']['attacks'] ) > 0 ) { $out['dshield']['result']['attacks'] = $dshield['ip']['attacks']; }
+		$feeds = array();
+		if( @count( $dshield['ip']['threatfeeds'] ) > 0 ) {
+			foreach( $dshield['ip']['threatfeeds'] as $feed=>$data ) {
+					$ls = $data['lastseen'];
+					$feed = $feed . " lastseen($ls)";
+					array_push( $feeds, $feed );
+			}
+			$tfeeds = implode( ", ", $feeds );
+			$out['dshield']['result']['tfeeds'] = $tfeeds;
+		}
+	}
 
 	// Portscan setup
 	if( isset( $_GET['portscan'] ) ) {
-		$out['portscan'] = [
-			'title' => 'Open ports'
-		];
-		$porturl = $purl . "$ip&auth=$auth";
-		$ch = curl_init( $porturl );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		$scanres = json_decode( curl_exec( $ch ), true );
-		$scandate = $scanres['date'];
-		unset( $scanres['date'] );
-		$out['portscan']['result']['entries'] = $scanres;
+		if( reportHit( "portscan" ) === TRUE ) { $out['portscan']['error'] = "API Queries exceeded. Try back later."; } else {
+			$out['portscan'] = [
+				'title' => 'Open ports'
+			];
+			$porturl = $purl . "$ip&auth=$auth";
+			$ch = curl_init( $porturl );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+			$scanres = json_decode( curl_exec( $ch ), true );
+			$scandate = $scanres['date'];
+			unset( $scanres['date'] );
+			$out['portscan']['result']['entries'] = $scanres;
+		}
 	}
-
+	
 	$m1_hola = json_decode( file_get_contents( __DIR__ . "/../sources/proxies.json" ), true );
 	$m2_hola = json_decode( file_get_contents( __DIR__ . "/../sources/hola_dns.json" ), true );
 
