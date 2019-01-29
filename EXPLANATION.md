@@ -140,6 +140,7 @@
  - NativeForeigners range calculator: https://nativeforeigner.com/calc/
  - Davidc's subnet calculator: http://www.davidc.net/sites/default/subnets/subnets.html
  	- I use this a lot to split ranges
+	
 ## Addittions or errors
 
 * Everything above is based on my own personal experience, and may be completely wrong!

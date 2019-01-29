@@ -473,11 +473,15 @@ if( $refresh === TRUE ) {
 	$out['cache']['result']['cacheuntil'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 );
 }
 
+$host = gethostbyaddr( $ip );
+if( $host == $ip ) { $hostname = $ip; } else { $hostname = "$ip - $host"; }
+
 if( isset( $_GET['api'] ) ) {
     echo json_encode( $out );
 } else {
     echo $twig->render( 'results.html.twig', [
-        'ip' => $ip,
+        'hostname' => $hostname,
+		'ip' => $ip,
         'out' => $out,
         'portscan' => isset( $_GET['portscan'] ),
     ] );
