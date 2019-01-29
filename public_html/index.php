@@ -187,7 +187,6 @@ function checkSorbs( $ip ) {
             array_push( $sorbs_result, $results );
         }
     }
-	reportHit( "sorbs" );
     return( $sorbs_result );
 }
 
