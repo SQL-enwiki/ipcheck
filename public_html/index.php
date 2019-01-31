@@ -228,7 +228,7 @@ if( $refresh === TRUE ) {
 			'title' => 'IPHub'
 		],
 		'teohio' => [
-			'title' => 'teoh.io'
+			'title' => 'Teoh.io'
 		],
 		'ipHunter' => [
 			'title' => 'IPHunter'
