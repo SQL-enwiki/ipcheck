@@ -44,12 +44,12 @@ function reportHit( $service ) {
 	if( file_exists( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ) !== FALSE ) {
 		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ), TRUE );
 		$stat['raw']++;
-		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
-		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
-		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
 		$stat['month'] = $month;
 		$stat['day'] = $day;
 		$stat['min'] = $min;
+		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
+		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
+		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
 	} else {
 		$stat['raw'] = 1;
 		$stat['month'] = $month;
@@ -227,8 +227,8 @@ if( $refresh === TRUE ) {
 		'ipHub' => [
 			'title' => 'IPHub'
 		],
-		'techio' => [
-			'title' => 'Tech.io'
+		'teohio' => [
+			'title' => 'teoh.io'
 		],
 		'ipHunter' => [
 			'title' => 'IPHunter'
@@ -324,18 +324,18 @@ if( $refresh === TRUE ) {
 	
 	// Teoh.io setup
 	if( reportHit( "teoh" ) === TRUE ) { $out['teoh']['error'] = "API Queries exceeded. Try back later."; } else {
-		$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
-		$techio = json_decode( file_get_contents( $techurl ), true );
-		if( @!isset( $techio['ip'] ) ) {
-			$out['techio']['error'] = true;
+		$teohurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
+		$teohio = json_decode( file_get_contents( $teohurl ), true );
+		if( @!isset( $teohio['ip'] ) ) {
+			$out['teohio']['error'] = true;
 		} else {
-			$type = $techio['type'];
-			$risk = $techio['risk'];
-			$out['techio']['result'] = [
-				'hosting' => true === $techio['is_hosting'],
-				'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
-				'type' => $techio['type'],
-				'risk' => $techio['risk'],
+			$type = $teohio['type'];
+			$risk = $teohio['risk'];
+			$out['teohio']['result'] = [
+				'hosting' => true === $teohio['is_hosting'],
+				'vpnOrProxy' => 'yes' === $teohio['vpn_or_proxy'],
+				'type' => $teohio['type'],
+				'risk' => $teohio['risk'],
 			];
 		}
 	}
