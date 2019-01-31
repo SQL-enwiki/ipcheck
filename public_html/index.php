@@ -23,9 +23,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 require '../vendor/autoload.php';
-
+include( "oauth.php" );
 include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
+
+if( $editcount < 3 ) { die( "I'm sorry, you can't use this application (1)\n" ); }
+$age = time() - strtotime( $registration );
+if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
 
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
@@ -196,6 +200,9 @@ $ip = $_GET['ip'];
 
 if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     echo $twig->render( 'base.html.twig', [
+		'username' => $username,
+		'editcount' => $editcount,
+		'registration' => $registration,
         'ip' => '',
 		'currentver' => $currentver,
         'portscan' => isset( $_GET['portscan'] ),
@@ -483,6 +490,7 @@ if( isset( $_GET['api'] ) ) {
     echo json_encode( $out );
 } else {
     echo $twig->render( 'results.html.twig', [
+		'username' => $username,
         'hostname' => $hostname,
 		'currentver' => $currentver,
 		'ip' => $ip,
