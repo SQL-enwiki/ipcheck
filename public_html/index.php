@@ -44,12 +44,12 @@ function reportHit( $service ) {
 	if( file_exists( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ) !== FALSE ) {
 		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ), TRUE );
 		$stat['raw']++;
-		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
-		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
-		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
 		$stat['month'] = $month;
 		$stat['day'] = $day;
 		$stat['min'] = $min;
+		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
+		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
+		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
 	} else {
 		$stat['raw'] = 1;
 		$stat['month'] = $month;
@@ -70,6 +70,7 @@ function reportHit( $service ) {
 	$lservice['spamhaus'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
 	$lservice['teoh'] = array( 'type' => 'day', 'limit' => 5000, 'type2' => 'day', 'limit2' => 5000 );
 	$lservice['dshield'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
+	$lservice['ipstack'] = array( 'type' => 'month', 'limit' => 10000, 'type2' => 'min', 'limit2' => 1000 );
 	
 	//Check first limit
 	if( $lservice[$service]['type'] == 'min' ) { 
@@ -227,14 +228,17 @@ if( $refresh === TRUE ) {
 		'ipHub' => [
 			'title' => 'IPHub'
 		],
-		'teohio' => [
-			'title' => 'Teoh.io'
+		'techio' => [
+			'title' => 'Tech.io'
 		],
 		'ipHunter' => [
 			'title' => 'IPHunter'
 		],
 		'noFraud' => [
 			'title' => 'Nofraud'
+		],
+		'ipstack' => [
+			'title' => 'ipstack.com'
 		],
 		'computeHosts' => [
 			'title' => 'Compute Hosts'
@@ -324,18 +328,18 @@ if( $refresh === TRUE ) {
 	
 	// Teoh.io setup
 	if( reportHit( "teoh" ) === TRUE ) { $out['teoh']['error'] = "API Queries exceeded. Try back later."; } else {
-		$teohurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
-		$teohio = json_decode( file_get_contents( $teohurl ), true );
-		if( @!isset( $teohio['ip'] ) ) {
-			$out['teohio']['error'] = true;
+		$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
+		$techio = json_decode( file_get_contents( $techurl ), true );
+		if( @!isset( $techio['ip'] ) ) {
+			$out['techio']['error'] = true;
 		} else {
-			$type = $teohio['type'];
-			$risk = $teohio['risk'];
-			$out['teohio']['result'] = [
-				'hosting' => true === $teohio['is_hosting'],
-				'vpnOrProxy' => 'yes' === $teohio['vpn_or_proxy'],
-				'type' => $teohio['type'],
-				'risk' => $teohio['risk'],
+			$type = $techio['type'];
+			$risk = $techio['risk'];
+			$out['techio']['result'] = [
+				'hosting' => true === $techio['is_hosting'],
+				'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
+				'type' => $techio['type'],
+				'risk' => $techio['risk'],
 			];
 		}
 	}
@@ -375,6 +379,20 @@ if( $refresh === TRUE ) {
 		}
 	}
 	
+	// ipstack.com setup
+	if( reportHit( "ipstack" ) === TRUE ) { $out['ipstack']['error'] = "API Queries exceeded. Try back later."; } else {
+		$ipstack = json_decode( file_get_contents( "http://api.ipstack.com/$ip?access_key=$ipstackkey" ), TRUE );
+		$city = $ipstack['city'];
+		$state = $ipstack['region_name'];
+		$zip = $ipstack['zip'];
+		$country = $ipstack['country_name'];
+		$out['ipstack']['result'] = [
+			'city' => $city,
+			'state' => $state,
+			'zip' => $zip,
+			'country' => $country
+		];
+	}	
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
 	$cRes = "";
