@@ -44,12 +44,12 @@ function reportHit( $service ) {
 	if( file_exists( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ) !== FALSE ) {
 		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ), TRUE );
 		$stat['raw']++;
-		$stat['month'] = $month;
-		$stat['day'] = $day;
-		$stat['min'] = $min;
 		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
 		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
 		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
+		$stat['month'] = $month;
+		$stat['day'] = $day;
+		$stat['min'] = $min;
 	} else {
 		$stat['raw'] = 1;
 		$stat['month'] = $month;
