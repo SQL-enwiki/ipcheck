@@ -31,11 +31,38 @@ if( $editcount < 3 ) { die( "I'm sorry, you can't use this application (1)\n" );
 $age = time() - strtotime( $registration );
 if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
 
+//Set up local logging table
+$ts_pw = posix_getpwuid(posix_getuid());
+$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
+$dbname = $ts_mycnf['user'] . '__ipcheck';
+$mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'] );
+mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
+mysqli_select_db( $mysqli, $dbname );
+mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
+	`log_id` bigint NOT NULL AUTO_INCREMENT,
+	`log_user` varchar(512) NOT NULL,
+	`log_user_hash` varchar(512) NOT NULL,
+	`log_user_ua` varchar(512) NOT NULL,
+	`log_search` varchar(512) NOT NULL,
+	`log_method` varchar(512) NOT NULL,
+	`log_timestamp` varchar(512) NOT NULL,
+	`log_cached` bool NOT NULL,
+	PRIMARY KEY (`log_id`)
+);" );
+
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
 $twig->addExtension(new Twig_Extension_Debug());
 
 $currentver = substr( file_get_contents( __DIR__. '/../.git/refs/heads/master' ), 0, 7 );
+
+function logit( $user, $search, $method, $cached, $mysqli ) {
+	$hash = @md5( $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['HTTP_ACCEPT_ENCODING'] . $_SERVER['HTTP_ACCEPT'] . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTP_DNT'] );
+	$ua = $_SERVER['HTTP_USER_AGENT'];
+	$timestamp = time();
+	$insert = "INSERT INTO logging( log_user, log_user_hash, log_user_ua, log_search, log_method, log_timestamp, log_cached ) values ( '$user', '$hash', '$ua', '$search', '$method', '$timestamp', $cached );";
+	mysqli_query( $mysqli, $insert );
+}
 
 function reportHit( $service ) {
 	//Record monthly stats on how many hits to each API service we're using.
@@ -477,10 +504,20 @@ if( $refresh === TRUE ) {
 	}
 	$out['cache']['result']['cached'] = 'no';
 	file_put_contents( __DIR__ . "/../cache/$ip.json", json_encode( $out ) );
+	if( isset( $_GET['api'] ) ) {
+		logit( $username, $ip, "api", 0, $mysqli );
+	} else {
+		logit( $username, $ip, "manual", 0, $mysqli );
+	}
 } else {
 	$out['cache']['result']['cached'] = 'yes';
 	$out['cache']['result']['cachedate'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) );
 	$out['cache']['result']['cacheuntil'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 );
+	if( isset( $_GET['api'] ) ) {
+		logit( $username, $ip, "api", 0, $mysqli );
+	} else {
+		logit( $username, $ip, "manual", 0, $mysqli );
+	}
 }
 
 $host = gethostbyaddr( $ip );
