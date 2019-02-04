@@ -228,8 +228,8 @@ if( $refresh === TRUE ) {
 		'ipHub' => [
 			'title' => 'IPHub'
 		],
-		'techio' => [
-			'title' => 'Tech.io'
+		'teohio' => [
+			'title' => 'Teoh.io'
 		],
 		'ipHunter' => [
 			'title' => 'IPHunter'
@@ -328,18 +328,18 @@ if( $refresh === TRUE ) {
 	
 	// Teoh.io setup
 	if( reportHit( "teoh" ) === TRUE ) { $out['teoh']['error'] = "API Queries exceeded. Try back later."; } else {
-		$techurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
-		$techio = json_decode( file_get_contents( $techurl ), true );
-		if( @!isset( $techio['ip'] ) ) {
-			$out['techio']['error'] = true;
+		$teohurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
+		$teohio = json_decode( file_get_contents( $teohurl ), true );
+		if( @!isset( $teohio['ip'] ) ) {
+			$out['teohio']['error'] = true;
 		} else {
-			$type = $techio['type'];
-			$risk = $techio['risk'];
-			$out['techio']['result'] = [
-				'hosting' => true === $techio['is_hosting'],
-				'vpnOrProxy' => 'yes' === $techio['vpn_or_proxy'],
-				'type' => $techio['type'],
-				'risk' => $techio['risk'],
+			$type = $teohio['type'];
+			$risk = $teohio['risk'];
+			$out['teohio']['result'] = [
+				'hosting' => true === $teohio['is_hosting'],
+				'vpnOrProxy' => 'yes' === $teohio['vpn_or_proxy'],
+				'type' => $teohio['type'],
+				'risk' => $teohio['risk'],
 			];
 		}
 	}
@@ -508,3 +508,4 @@ if( isset( $_GET['api'] ) ) {
         'portscan' => isset( $_GET['portscan'] ),
     ] );
 }
+?>
