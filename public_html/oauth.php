@@ -33,6 +33,7 @@ $mwOAuthAuthorizeUrl = 'https://meta.wikimedia.beta.wmflabs.org/wiki/Special:OAu
  * index.php?title=Special:OAuth works fine.
  */
  //Set this to the wiki you are checking
+ // Disable for production
 $mwOAuthUrl = 'https://en.wikipedia.beta.wmflabs.org/w/index.php?title=Special:OAuth';
 
 /**
@@ -81,6 +82,16 @@ $gConsumerSecret = $ini['consumerSecret'];
 $gTokenKey = '';
 $gTokenSecret = '';
 session_start();
+if( $_GET['dbname'] != "" && $_SESSION['wiki'] != "" ) {  }
+if( isset( $_GET['dbname'] ) ) {
+	$_SESSION['wiki'] = $_GET['dbname'];
+} else {
+	if( !isset( $_SESSION['wiki'] ) ) {
+		header( 'Location: https://tools.wmflabs.org/ipcheck-dev/splash.php' );
+		die();
+	}
+}
+$wiki = $_SESSION['wiki'];
 if ( isset( $_SESSION['tokenKey'] ) ) {
 	$gTokenKey = $_SESSION['tokenKey'];
 	$gTokenSecret = $_SESSION['tokenSecret'];
@@ -89,6 +100,15 @@ session_write_close();
 
 // Fetch the access token if this is the callback from requesting authorization
 if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
+	$ts_pw = posix_getpwuid(posix_getuid());
+	$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
+	
+	$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
+	$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
+	$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
+	mysqli_close( $my_oa );
+	//enable for production
+	//$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
 	fetchAccessToken();
 	header('Location: https://tools.wmflabs.org/ipcheck-dev/');
 }
@@ -105,10 +125,9 @@ switch ( isset( $_GET['action'] ) ? $_GET['action'] : '' ) {
 		break;
 
 }
-$identity = doIdentify();
+$identity = doIdentify( );
 if( $identity !== FALSE ) {
 	$username = $identity->username;
-//	echo "Welcome, $username<br />\n";
 	$editcount = $identity->editcount;
 	$registration = $identity->registered;
 	$blocked = $identity->blocked;

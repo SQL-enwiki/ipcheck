@@ -16,6 +16,7 @@
             <hr>
         </header>
         <section class="col-sm-9">
+			{% if username is defined %}
             <form action="index.php" method="get">
                 <div class="form-group">
                     <label for="ip_input">IP address</label>
@@ -28,7 +29,17 @@
                 </div>
                 <button type="submit" class="btn btn-default">Submit</button>
             </form>
-
+			{% endif %}
+			{% if splash is defined %}
+			<form action='oauth.php?action=authorize'>
+				Select your wiki: <select name='dbname'>
+					{% for item in options %}
+						<option value="{{ item.dbname }}" {% if item.dbname == "enwiki" %} selected="selected" {% endif %} > {{ item.lang }}.{{ item.family }}</option>
+					{% endfor %}
+				</select>
+				<input type="submit">
+			</form>
+			{% endif %}
             {% block results %}
             {% endblock %}
         </section>
@@ -63,9 +74,11 @@
 			<small class="text-muted">
                 NOTE: No port scanning is done from Toolforge.
             </small>
+			{% if username is defined %}
 			<div style="margin-top: 10px">
                 Logged in as: {{ username }}
 			</div>
+			{% endif %}
             <div style="margin-top: 10px">
                 Brought to you by
                 [[<a target="_blank" href="https://en.wikipedia.org/wiki/User:SQL">User:SQL</a>]]
@@ -81,6 +94,5 @@
             </div>
         </footer>
     </main>
-	<!-- Editcount: {{ editcount }} Registration: {{ registration }} -->
 </body>
 </html>

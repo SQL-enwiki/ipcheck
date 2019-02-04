@@ -23,7 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 require '../vendor/autoload.php';
-include( "oauth.php" );
+if( $_GET['api'] != "true" ) {
+	include( "oauth.php" );
+}
 include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
 
