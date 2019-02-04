@@ -382,10 +382,26 @@ if( $refresh === TRUE ) {
 	// ipstack.com setup
 	if( reportHit( "ipstack" ) === TRUE ) { $out['ipstack']['error'] = "API Queries exceeded. Try back later."; } else {
 		$ipstack = json_decode( file_get_contents( "http://api.ipstack.com/$ip?access_key=$ipstackkey" ), TRUE );
-		if( @isset( $ipstack['city'] ) ) { $out['ipstack']['result']['city'] == $ipstack['city']; }
-		if( @isset( $ipstack['region_name'] ) ) { $out['ipstack']['result']['state'] == $ipstack['region_name']; }
-		if( @isset( $ipstack['zip'] ) ) { $out['ipstack']['result']['zip'] == $ipstack['zip']; }
-		if( @isset( $ipstack['country'] ) ) { $out['ipstack']['result']['country'] == $ipstack['country']; }
+		if( @isset( $ipstack['city'] ) ) { 
+			$out['ipstack']['result'] = [
+				'city' => $ipstack['city'],
+			];
+		}
+		if( @isset( $ipstack['region_name'] ) ) { 
+			$out['ipstack']['result'] = [
+				'state' => $ipstack['region_name'],
+			];
+		}
+		if( @isset( $ipstack['zip'] ) ) { 
+			$out['ipstack']['result'] = [
+				'zip' => $ipstack['zip'],
+			];
+		}
+		if( @isset( $ipstack['country_name'] ) ) { 
+			$out['ipstack']['result'] = [
+				'country' => $ipstack['country_name'],
+			];
+		}		
 	}	
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
