@@ -31,7 +31,7 @@ if( $editcount < 3 ) { die( "I'm sorry, you can't use this application (1)\n" );
 $age = time() - strtotime( $registration );
 if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
 
-//Set up local logging table
+//Set up local SQL tables
 $ts_pw = posix_getpwuid(posix_getuid());
 $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 $dbname = $ts_mycnf['user'] . '__ipcheck';
@@ -48,7 +48,16 @@ mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
 	`log_timestamp` varchar(512) NOT NULL,
 	`log_cached` bool NOT NULL,
 	PRIMARY KEY (`log_id`)
-);" );
+);
+
+CREATE TABLE IF NOT EXISTS `api` (
+	`api_id` int(255) NOT NULL AUTO_INCREMENT,
+	`api_key` varchar(255) NOT NULL,
+	`api_user` varchar(512) NOT NULL,
+	PRIMARY KEY (`api_id`)
+);
+" );
+
 
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
@@ -237,7 +246,9 @@ if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     die();
 }
 $refresh = FALSE;
-if( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
+if( isset( $_GET['refresh'] ) ) {
+	$refresh = TRUE;
+} elseif( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
 	$out = json_decode( file_get_contents( __DIR__ . "/../cache/$ip.json" ), true );
 	if( filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 < time() ) { 
 		$refresh = TRUE; 
@@ -505,9 +516,9 @@ if( $refresh === TRUE ) {
 	$out['cache']['result']['cached'] = 'no';
 	file_put_contents( __DIR__ . "/../cache/$ip.json", json_encode( $out ) );
 	if( isset( $_GET['api'] ) ) {
-		logit( $username, $ip, "api", 0, $mysqli );
+		logit( $username, $ip, "api", 1, $mysqli );
 	} else {
-		logit( $username, $ip, "manual", 0, $mysqli );
+		logit( $username, $ip, "manual", 1, $mysqli );
 	}
 } else {
 	$out['cache']['result']['cached'] = 'yes';

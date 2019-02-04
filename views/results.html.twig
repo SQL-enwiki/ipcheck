@@ -66,7 +66,12 @@
                                 {% endif %}
 								
 								{% if data.result.cached is defined %}
-                                    Cached: {{ data.result.cached }}<br/>
+									{% if data.result.cached == "yes" %}
+										Cached: {{ data.result.cached }} <a href="index.php?ip={{ ip }}&refresh=true">Refresh</a><br/>
+									{% endif %}
+									{% if data.result.cached == "no" %}
+										Cached: {{ data.result.cached }}<br/>
+									{% endif %}
                                 {% endif %}
 
 								{% if data.result.attacks is defined %}
