@@ -25,6 +25,12 @@ SOFTWARE. */
 require '../vendor/autoload.php';
 if( $_GET['api'] != "true" ) {
 	include( "oauth.php" );
+	//Testing code
+	echo "<!-- \n";
+	print_r( $identity );
+	echo "\n-->\n";
+} elseif ( $_GET['api'] == "true" ) {
+	
 }
 include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );

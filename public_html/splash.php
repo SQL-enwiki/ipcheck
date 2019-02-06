@@ -12,11 +12,14 @@ $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 
 $mysqli = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
 
-$query = 'select lang, family, dbname from wiki order by dbname asc;';
+$query = 'select url, lang, family, dbname from wiki where is_closed = 0 order by dbname asc;';
 
 $res = mysqli_query( $mysqli, $query );
 $opt = array();
 while( $row = mysqli_fetch_assoc( $res ) ) {
+	$murl = parse_url( $row['url'],  PHP_URL_HOST );
+	$murl = substr( $murl, 0, -4 );
+	$row['url'] = $murl;
 	array_push( $opt, $row );
 }
 echo $twig->render( 'base.html.twig', [

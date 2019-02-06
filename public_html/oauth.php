@@ -25,7 +25,7 @@ $inifile = '/data/project/ipcheck-dev/oauth.ini';
  * Set this to the Special:OAuth/authorize URL. 
  * To work around MobileFrontend redirection, use /wiki/ rather than /w/index.php.
  */
-$mwOAuthAuthorizeUrl = 'https://meta.wikimedia.beta.wmflabs.org/wiki/Special:OAuth/authorize';
+$mwOAuthAuthorizeUrl = 'https://meta.wikimedia.org/wiki/Special:OAuth/authorize';
 //
 /**
  * Set this to the Special:OAuth URL. 
@@ -34,7 +34,7 @@ $mwOAuthAuthorizeUrl = 'https://meta.wikimedia.beta.wmflabs.org/wiki/Special:OAu
  */
  //Set this to the wiki you are checking
  // Disable for production
-$mwOAuthUrl = 'https://en.wikipedia.beta.wmflabs.org/w/index.php?title=Special:OAuth';
+//$mwOAuthUrl = 'https://en.wikipedia.beta.wmflabs.org/w/index.php?title=Special:OAuth';
 
 /**
  * Set this to the interwiki prefix for the OAuth central wiki.
@@ -82,9 +82,23 @@ $gConsumerSecret = $ini['consumerSecret'];
 $gTokenKey = '';
 $gTokenSecret = '';
 session_start();
-if( $_GET['dbname'] != "" && $_SESSION['wiki'] != "" ) {  }
+
+if( isset( $_SESSION['mwOAuthUrl'] ) ) {
+	$mwOAuthUrl = $_SESSION['mwOAuthUrl'];
+}
 if( isset( $_GET['dbname'] ) ) {
 	$_SESSION['wiki'] = $_GET['dbname'];
+	$wiki = $_GET['dbname'];
+	$ts_pw = posix_getpwuid(posix_getuid());
+	$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
+	
+	$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
+	$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
+	$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
+	mysqli_close( $my_oa );
+	//enable for production
+	$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
+	$_SESSION['mwOAuthUrl'] = $mwOAuthUrl;
 } else {
 	if( !isset( $_SESSION['wiki'] ) ) {
 		header( 'Location: https://tools.wmflabs.org/ipcheck-dev/splash.php' );
@@ -108,7 +122,7 @@ if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
 	$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
 	mysqli_close( $my_oa );
 	//enable for production
-	//$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
+	$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
 	fetchAccessToken();
 	header('Location: https://tools.wmflabs.org/ipcheck-dev/');
 }
@@ -217,6 +231,7 @@ function doAuthorizationRedirect() {
 	$signature = sign_request( 'GET', $url );
 	$url .= "&oauth_signature=" . urlencode( $signature );
 	$ch = curl_init();
+		//TEST111 echo "$url\n";
 	curl_setopt( $ch, CURLOPT_URL, $url );
 	//curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 	curl_setopt( $ch, CURLOPT_USERAGENT, $gUserAgent );
@@ -344,6 +359,7 @@ function doIdentify() {
 	$header = 'Authorization: OAuth ' . join( ', ', $header );
 
 	$ch = curl_init();
+	
 	curl_setopt( $ch, CURLOPT_URL, $url );
 	curl_setopt( $ch, CURLOPT_HTTPHEADER, array( $header ) );
 	//curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );

@@ -34,7 +34,7 @@
 			<form action='oauth.php?action=authorize'>
 				Select your wiki: <select name='dbname'>
 					{% for item in options %}
-						<option value="{{ item.dbname }}" {% if item.dbname == "enwiki" %} selected="selected" {% endif %} > {{ item.lang }}.{{ item.family }}</option>
+						<option value="{{ item.dbname }}" {% if item.dbname == "enwiki" %} selected="selected" {% endif %} > {{ item.url }}</option>
 					{% endfor %}
 				</select>
 				<input type="submit">
