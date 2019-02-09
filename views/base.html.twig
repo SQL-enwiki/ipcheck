@@ -31,6 +31,7 @@
             </form>
 			{% endif %}
 			{% if splash is defined %}
+			<h2>Log in</h2>
 			<form action='oauth.php?action=authorize'>
 				Select your wiki: <select name='dbname'>
 					{% for item in options %}
@@ -76,8 +77,11 @@
             </small>
 			{% if username is defined %}
 			<div style="margin-top: 10px">
-                Logged in as: {{ username }}<br />
-				API Key: {{apikey}}
+                Logged in as: {{ username }} - <a href="index.php?logout=true">Logout</a><br />
+				<details>
+				<summary>API Key</summary>
+				<p>{{apikey}}</p>
+				</details>
 			</div>
 			{% endif %}
             <div style="margin-top: 10px">
