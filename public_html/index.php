@@ -23,15 +23,63 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 require '../vendor/autoload.php';
-
+if( $_GET['api'] != "true" ) {
+	include( "oauth.php" );
+	//Testing code
+	echo "<!-- \n";
+	print_r( $identity );
+	echo "\n-->\n";
+} elseif ( $_GET['api'] == "true" ) {
+	
+}
 include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
+
+if( $editcount < 500 ) { die( "I'm sorry, you can't use this application (1)\n" ); }
+$age = time() - strtotime( $registration );
+if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
+
+//Set up local SQL tables
+$ts_pw = posix_getpwuid(posix_getuid());
+$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
+$dbname = $ts_mycnf['user'] . '__ipcheck';
+$mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'] );
+mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
+mysqli_select_db( $mysqli, $dbname );
+mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
+	`log_id` bigint NOT NULL AUTO_INCREMENT,
+	`log_user` varchar(512) NOT NULL,
+	`log_user_hash` varchar(512) NOT NULL,
+	`log_user_ua` varchar(512) NOT NULL,
+	`log_search` varchar(512) NOT NULL,
+	`log_method` varchar(512) NOT NULL,
+	`log_timestamp` varchar(512) NOT NULL,
+	`log_cached` bool NOT NULL,
+	PRIMARY KEY (`log_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `api` (
+	`api_id` int(255) NOT NULL AUTO_INCREMENT,
+	`api_key` varchar(255) NOT NULL,
+	`api_user` varchar(512) NOT NULL,
+	PRIMARY KEY (`api_id`)
+);
+" );
+
 
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
 $twig->addExtension(new Twig_Extension_Debug());
 
 $currentver = substr( file_get_contents( __DIR__. '/../.git/refs/heads/master' ), 0, 7 );
+
+function logit( $user, $search, $method, $cached, $mysqli ) {
+	$hash = @md5( $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['HTTP_ACCEPT_ENCODING'] . $_SERVER['HTTP_ACCEPT'] . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTP_DNT'] );
+	$ua = $_SERVER['HTTP_USER_AGENT'];
+	$timestamp = time();
+	$insert = "INSERT INTO logging( log_user, log_user_hash, log_user_ua, log_search, log_method, log_timestamp, log_cached ) values ( '$user', '$hash', '$ua', '$search', '$method', '$timestamp', $cached );";
+	mysqli_query( $mysqli, $insert );
+}
 
 function reportHit( $service ) {
 	//Record monthly stats on how many hits to each API service we're using.
@@ -43,10 +91,10 @@ function reportHit( $service ) {
 	}
 	if( file_exists( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ) !== FALSE ) {
 		$stat = json_decode( file_get_contents( __DIR__ . "/../stats/$service." . date( "Ym" ) . ".json" ), TRUE );
-		$stat['raw']++;
 		if( $stat['month'] == $month ) { $stat['rmonth']++; } else { $stat['rmonth'] = 1; }
 		if( $stat['day'] == $day ) { $stat['rday']++; } else { $stat['rday'] = 1; }
 		if( $stat['min'] == $min ) { $stat['rmin']++; } else { $stat['rmin'] = 1; }
+		$stat['raw']++;
 		$stat['month'] = $month;
 		$stat['day'] = $day;
 		$stat['min'] = $min;
@@ -70,7 +118,6 @@ function reportHit( $service ) {
 	$lservice['spamhaus'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
 	$lservice['teoh'] = array( 'type' => 'day', 'limit' => 5000, 'type2' => 'day', 'limit2' => 5000 );
 	$lservice['dshield'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
-	$lservice['ipstack'] = array( 'type' => 'month', 'limit' => 10000, 'type2' => 'min', 'limit2' => 1000 );
 	
 	//Check first limit
 	if( $lservice[$service]['type'] == 'min' ) { 
@@ -197,6 +244,9 @@ $ip = $_GET['ip'];
 
 if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     echo $twig->render( 'base.html.twig', [
+		'username' => $username,
+		'editcount' => $editcount,
+		'registration' => $registration,
         'ip' => '',
 		'currentver' => $currentver,
         'portscan' => isset( $_GET['portscan'] ),
@@ -204,7 +254,9 @@ if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     die();
 }
 $refresh = FALSE;
-if( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
+if( isset( $_GET['refresh'] ) ) {
+	$refresh = TRUE;
+} elseif( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
 	$out = json_decode( file_get_contents( __DIR__ . "/../cache/$ip.json" ), true );
 	if( filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 < time() ) { 
 		$refresh = TRUE; 
@@ -236,9 +288,6 @@ if( $refresh === TRUE ) {
 		],
 		'noFraud' => [
 			'title' => 'Nofraud'
-		],
-		'ipstack' => [
-			'title' => 'ipstack.com'
 		],
 		'computeHosts' => [
 			'title' => 'Compute Hosts'
@@ -379,30 +428,6 @@ if( $refresh === TRUE ) {
 		}
 	}
 	
-	// ipstack.com setup
-	if( reportHit( "ipstack" ) === TRUE ) { $out['ipstack']['error'] = "API Queries exceeded. Try back later."; } else {
-		$ipstack = json_decode( file_get_contents( "http://api.ipstack.com/$ip?access_key=$ipstackkey" ), TRUE );
-		if( @isset( $ipstack['city'] ) ) { 
-			$out['ipstack']['result'] = [
-				'city' => $ipstack['city'],
-			];
-		}
-		if( @isset( $ipstack['region_name'] ) ) { 
-			$out['ipstack']['result'] = [
-				'state' => $ipstack['region_name'],
-			];
-		}
-		if( @isset( $ipstack['zip'] ) ) { 
-			$out['ipstack']['result'] = [
-				'zip' => $ipstack['zip'],
-			];
-		}
-		if( @isset( $ipstack['country_name'] ) ) { 
-			$out['ipstack']['result'] = [
-				'country' => $ipstack['country_name'],
-			];
-		}		
-	}	
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
 	$cRes = "";
@@ -498,10 +523,20 @@ if( $refresh === TRUE ) {
 	}
 	$out['cache']['result']['cached'] = 'no';
 	file_put_contents( __DIR__ . "/../cache/$ip.json", json_encode( $out ) );
+	if( isset( $_GET['api'] ) ) {
+		logit( $username, $ip, "api", 1, $mysqli );
+	} else {
+		logit( $username, $ip, "manual", 1, $mysqli );
+	}
 } else {
 	$out['cache']['result']['cached'] = 'yes';
 	$out['cache']['result']['cachedate'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) );
 	$out['cache']['result']['cacheuntil'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 );
+	if( isset( $_GET['api'] ) ) {
+		logit( $username, $ip, "api", 0, $mysqli );
+	} else {
+		logit( $username, $ip, "manual", 0, $mysqli );
+	}
 }
 
 $host = gethostbyaddr( $ip );
@@ -511,6 +546,7 @@ if( isset( $_GET['api'] ) ) {
     echo json_encode( $out );
 } else {
     echo $twig->render( 'results.html.twig', [
+		'username' => $username,
         'hostname' => $hostname,
 		'currentver' => $currentver,
 		'ip' => $ip,
@@ -518,4 +554,3 @@ if( isset( $_GET['api'] ) ) {
         'portscan' => isset( $_GET['portscan'] ),
     ] );
 }
-?>
