@@ -140,6 +140,7 @@ function reportHit( $service ) {
 	$lservice['spamhaus'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
 	$lservice['teoh'] = array( 'type' => 'day', 'limit' => 5000, 'type2' => 'day', 'limit2' => 5000 );
 	$lservice['dshield'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
+	$lservice['ipstack'] = array( 'type' => 'month', 'limit' => 10000, 'type2' => 'min', 'limit2' => 1000 );
 	
 	//Check first limit
 	if( $lservice[$service]['type'] == 'min' ) { 
@@ -312,6 +313,9 @@ if( $refresh === TRUE ) {
 		'noFraud' => [
 			'title' => 'Nofraud'
 		],
+		'ipstack' => [
+			'title' => 'ipstack.com'
+		],
 		'computeHosts' => [
 			'title' => 'Compute Hosts'
 		],
@@ -451,6 +455,30 @@ if( $refresh === TRUE ) {
 		}
 	}
 	
+	// ipstack.com setup
+	if( reportHit( "ipstack" ) === TRUE ) { $out['ipstack']['error'] = "API Queries exceeded. Try back later."; } else {
+		$ipstack = json_decode( file_get_contents( "http://api.ipstack.com/$ip?access_key=$ipstackkey" ), TRUE );
+		if( @isset( $ipstack['city'] ) ) { 
+			$out['ipstack']['result'] = [
+				'city' => $ipstack['city'],
+			];
+		}
+		if( @isset( $ipstack['region_name'] ) ) { 
+			$out['ipstack']['result'] = [
+				'state' => $ipstack['region_name'],
+			];
+		}
+		if( @isset( $ipstack['zip'] ) ) { 
+			$out['ipstack']['result'] = [
+				'zip' => $ipstack['zip'],
+			];
+		}
+		if( @isset( $ipstack['country_name'] ) ) { 
+			$out['ipstack']['result'] = [
+				'country' => $ipstack['country_name'],
+			];
+		}		
+	}	
 	//Check for google compute, amazon aws, and microsoft azure
 	$check = checkCompute( $ip );
 	$cRes = "";
@@ -578,3 +606,4 @@ if( isset( $_GET['api'] ) ) {
         'portscan' => isset( $_GET['portscan'] ),
     ] );
 }
+?>
