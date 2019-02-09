@@ -101,7 +101,7 @@ if( isset( $_GET['dbname'] ) ) {
 	$_SESSION['mwOAuthUrl'] = $mwOAuthUrl;
 } else {
 	if( !isset( $_SESSION['wiki'] ) ) {
-		header( 'Location: https://tools.wmflabs.org/ipcheck-dev/splash.php' );
+		header( 'Location: splash.php' );
 		die();
 	}
 }
@@ -124,7 +124,7 @@ if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
 	//enable for production
 	$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
 	fetchAccessToken();
-	header('Location: https://tools.wmflabs.org/ipcheck-dev/');
+	header('Location: index.php');
 }
 
 // Take any requested action

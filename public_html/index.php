@@ -32,10 +32,11 @@ mysqli_select_db( $mysqli, $dbname );
 require '../vendor/autoload.php';
 if( $_GET['api'] != "true" ) {
 	include( "oauth.php" );
-	//Testing code
-	echo "<!-- \n";
-	print_r( $identity );
-	echo "\n-->\n";
+	if( $_GET['logout'] == "true" ) { 
+		session_start();
+		session_destroy();
+		header( 'Location: index.php' );
+	}
 } elseif ( $_GET['api'] == "true" ) {
 	$key = $_GET['key'];
 	$apiq = "select api_user from api where api_key = '$key';";
