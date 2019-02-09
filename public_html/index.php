@@ -22,6 +22,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
+$ts_pw = posix_getpwuid(posix_getuid());
+$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
+$dbname = $ts_mycnf['user'] . '__ipcheck';
+$mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'] );
+mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
+mysqli_select_db( $mysqli, $dbname );
+
 require '../vendor/autoload.php';
 if( $_GET['api'] != "true" ) {
 	include( "oauth.php" );
@@ -30,7 +37,16 @@ if( $_GET['api'] != "true" ) {
 	print_r( $identity );
 	echo "\n-->\n";
 } elseif ( $_GET['api'] == "true" ) {
-	
+	$key = $_GET['key'];
+	$apiq = "select api_user from api where api_key = '$key';";
+	$apires = mysqli_query( $mysqli, $apiq );
+	$err = mysqli_error( $mysqli );
+	$num = mysqli_num_rows( $apires );
+	if( mysqli_num_rows( $apires ) == 0 ) { die( "Invalid API Key" ); };
+	$row = mysqli_fetch_assoc( $apires );
+	$username = $row['api_user'];
+	$editcount = 999;
+	$age = 99999999;
 }
 include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
@@ -40,12 +56,8 @@ $age = time() - strtotime( $registration );
 if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
 
 //Set up local SQL tables
-$ts_pw = posix_getpwuid(posix_getuid());
-$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
-$dbname = $ts_mycnf['user'] . '__ipcheck';
-$mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'] );
-mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
-mysqli_select_db( $mysqli, $dbname );
+
+
 mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
 	`log_id` bigint NOT NULL AUTO_INCREMENT,
 	`log_user` varchar(512) NOT NULL,
