@@ -20,3 +20,7 @@ You should now be up and running at http://localhost:8000
 
 * There are some tips / hints at [EXPLANATION.md](EXPLANATION.md)
   * Please don't hesitate to send a pull request for this file!
+
+## API
+
+* Instructions on using the API can be found at [API.MD](API.MD)
