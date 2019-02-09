@@ -6,12 +6,22 @@
     <link rel="stylesheet" href="//tools-static.wmflabs.org/cdnjs/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap-theme.min.css">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript">
+	<!-- From: https://css-tricks.com/snippets/javascript/showhide-element/ -->
+    function toggle_visibility(id) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+          e.style.display = 'none';
+       else
+          e.style.display = 'block';
+    }
+</script>
 </head>
 <body>
     <main class="container">
         <header class="col-sm-12">
             <h1>
-                <strong><a target="_blank" href="index.php"><span style="color: black;">Proxy API Checker</span></a></strong>
+                <strong>Proxy API Checker</strong>
             </h1>
             <hr>
         </header>
@@ -31,6 +41,7 @@
             </form>
 			{% endif %}
 			{% if splash is defined %}
+			<h2>Log in</h2>
 			<form action='oauth.php?action=authorize'>
 				Select your wiki: <select name='dbname'>
 					{% for item in options %}
@@ -55,7 +66,6 @@
                     <a target="_blank" class="list-group-item" href="https://getipintel.net">GetIPIntel</a>
                     <a target="_blank" class="list-group-item" href="https://www.iphunter.info">IPHunter</a>
                     <a target="_blank" class="list-group-item" href="https://nofraud.co">NoFraud</a>
-					<a target="_blank" class="list-group-item" href="https://ipstack.com">ipstack</a>
                     <a target="_blank" class="list-group-item" href="https://ip.teoh.io">Teoh.io</a>
                 </div>
             </div>
@@ -78,7 +88,10 @@
 			{% if username is defined %}
 			<div style="margin-top: 10px">
                 Logged in as: {{ username }}<br />
-				API Key: {{apikey}}
+				<details>
+				<summary>API Key</summary>
+				<p>{{apikey}}</p>
+				</details>
 			</div>
 			{% endif %}
             <div style="margin-top: 10px">
