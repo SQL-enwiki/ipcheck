@@ -56,16 +56,26 @@ mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
 	`log_timestamp` varchar(512) NOT NULL,
 	`log_cached` bool NOT NULL,
 	PRIMARY KEY (`log_id`)
-);
+);");
 
-CREATE TABLE IF NOT EXISTS `api` (
+mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `api` (
 	`api_id` int(255) NOT NULL AUTO_INCREMENT,
 	`api_key` varchar(255) NOT NULL,
 	`api_user` varchar(512) NOT NULL,
 	PRIMARY KEY (`api_id`)
-);
-" );
+);" );
+$musername = mysqli_real_escape_string( $mysqli, $username );
+$apiq = "select api_key from api where api_user = '$musername';";
 
+$res = mysqli_query( $mysqli, $apiq );
+if( mysqli_num_rows( $res ) == 0 ) {
+	$apikey = md5( password_hash( rand() . $username . time(), PASSWORD_DEFAULT ) );
+	$ins = "INSERT INTO api( api_key, api_user ) VALUES ( '$apikey', '$musername' );";
+	mysqli_query( $mysqli, $ins );
+} else {
+	$row = mysqli_fetch_assoc( $res );
+	$apikey = $row['api_key'];
+}
 
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
@@ -248,6 +258,7 @@ if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
 		'editcount' => $editcount,
 		'registration' => $registration,
         'ip' => '',
+		'apikey' => $apikey,
 		'currentver' => $currentver,
         'portscan' => isset( $_GET['portscan'] ),
     ] );
@@ -551,6 +562,7 @@ if( isset( $_GET['api'] ) ) {
 		'currentver' => $currentver,
 		'ip' => $ip,
         'out' => $out,
+		'apikey' => $apikey,
         'portscan' => isset( $_GET['portscan'] ),
     ] );
 }
