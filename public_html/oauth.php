@@ -19,7 +19,7 @@
  * - consumerKey: The "consumer token" given to you when registering your app
  * - consumerSecret: The "secret token" given to you when registering your app
  */
-$inifile = '/data/project/ipcheck-dev/oauth.ini';
+$inifile = __DIR__ . '/../oauth.ini';
 
 /**
  * Set this to the Special:OAuth/authorize URL. 
