@@ -1,4 +1,5 @@
 <?php
+
 /*
 MIT License
 
@@ -22,6 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
+require '../vendor/autoload.php';
+
 $ts_pw = posix_getpwuid(posix_getuid());
 $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 $dbname = $ts_mycnf['user'] . '__ipcheck';
@@ -29,7 +32,21 @@ $mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf[
 mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
 mysqli_select_db( $mysqli, $dbname );
 
-require '../vendor/autoload.php';
+use Phpml\Classification\KNearestNeighbors;
+//use Phpml\Classification\SVC;
+//use Phpml\SupportVectorMachine\Kernel;
+use Phpml\ModelManager;
+
+$modelManager = new ModelManager();
+
+$modelPath = __DIR__ . '/../sources/proxy.model';
+$classifier = $modelManager->restoreFromFile( $modelPath );
+
+//$classifier = new KNearestNeighbors( );
+//$classifier = new NaiveBayes();
+//$classifier = new SVC(Kernel::LINEAR, $cost = 1000);
+
+
 if( $_GET['api'] != "true" ) {
 	include( "oauth.php" );
 	if( $_GET['logout'] == "true" ) { 
@@ -55,9 +72,9 @@ include( "../checkhost/checkhost.php" );
 if( $editcount < 500 ) { die( "I'm sorry, you can't use this application (1)\n" ); }
 $age = time() - strtotime( $registration );
 if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
-
+/*if( $username != "SQL" && $username != "MusikAnimal" ) { header( "Location: https://tools.wmflabs.org/ipcheck/index.php" );
+die(); }*/
 //Set up local SQL tables
-
 
 mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
 	`log_id` bigint NOT NULL AUTO_INCREMENT,
@@ -95,6 +112,95 @@ $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
 $twig->addExtension(new Twig_Extension_Debug());
 
 $currentver = substr( file_get_contents( __DIR__. '/../.git/refs/heads/master' ), 0, 7 );
+
+function ingestTraining( $results ) {
+	/*The training dataset structure
+	Param 0: proxycheck.io Values: 1 or 0. 1 equalling proxy, 0 equalling not a proxy
+	Param 1: GetIPIntel Values: 100.00 to 0.00 100.00 equalling proxy, 0.00 equalling not a proxy
+	Param 2: IPQS Proxy Values: 1 or 0. 1 equalling proxy, 0 equalling not a proxy
+	Param 3: IPQS VPN Values: 1 or 0. 1 equalling VPN, 0 equalling not a VPN
+	Param 4: IPQS Mobile Values: 1 or 0. 1 equalling Mobile, 0 equalling not a Mobile
+	Param 5: IPHub Values 0, 1, or 2. 0 = Residential, 1 = Datacenter / hosting
+	Param 6: Teoh risk values 0, 1, or 2. 0 = low 1 = normal 2 = high
+	Param 7: Teoh type values 0, 1, 2, 3 or 4. 0 = isp 1 = Hosting/Datacenter 2 = business 3 = mixed 4 = mobile
+	Param 8: Teoh VPN/Proxy Values: 1 or 0. 1 equalling proxy, 0 equalling not a proxy
+	Param 9: Teoh Hosting Values: 1 or 0. 1 equalling Hosting, 0 equalling not a Hosting
+	Param 10: hunter Values 0, 1, or 2. 0 = Residential, 1 = Datacenter / hosting
+	Param 11: Nofraud prediction Values: 100.00 to 0.00 100.00 equalling proxy, 0.00 equalling not a proxy
+	Param 12: Compute Hosts Values: 0 or 1. 1 == Compute Host, 0 = not a compute host
+	Param 13: Hola Values: 0 or 1. 1 == Compute Host, 0 = not a compute host
+	Param 14: DShield Value: Attacks seen
+	Param 15: SORBS Value: Sum of the last octet of results. E.g. 127.0.0.4, 127.0.0.10 = 14
+	Param 16: SpamHaus Value: Sum of the last octet of results. E.g. 127.0.0.4, 127.0.0.10 = 14
+	*/
+	$training = array();
+	if( $results['proxycheck']['result']['proxy'] === TRUE ) {
+		$proxycheck = 1;
+	} else {
+		$proxycheck = 0;
+	}
+	$getIPIntel = intval( $results['getIPIntel']['result']['chance'] );
+	$ipqsproxy = intval( $results['ipQualityScore']['result']['proxy'] );
+	$ipqsvpn = intval( $results['ipQualityScore']['result']['vpn'] );
+	if( $results['ipQualityScore']['result']['vpn'] === TRUE ) { $ipqsmobile = 1; } else { $ipqsmobile = 0; }
+	$iphub = intval( $results['ipHub']['result']['block'] );
+	if( $results['teohio']['result']['hosting'] === TRUE ) { $teohhosting = 1; } else { $teohhosting = 0; }
+	if( $results['teohio']['result']['vpnOrProxy'] === TRUE ) { $teohvpn = 1; } else { $teohvpn = 0; }
+	if( $results['teohio']['result']['risk'] === "high" ) { 
+		$teohrisk = 2; 
+	} elseif( $results['teohio']['result']['risk'] === "normal" ) { 
+		$teohrisk = 1; 
+	} else {
+		$teohrisk = 0; 
+	}
+	switch( $results['teohio']['result']['type'] ) {
+		case "isp":
+			$teohtype = 0;
+			break;
+		case "Hosting/Datacenter":
+			$teohtype = 1;
+			break;
+		case "business":
+			$teohtype = 2;
+			break;
+		case "mixed":
+			$teohtype = 3;
+			break;
+		case "mobile":
+			$teohtype = 4;
+			break;
+	}
+	$iphunter = intval( $results['ipHunter']['result']['block'] );
+	$nofraud = intval( $results['noFraud']['result']['chance'] );
+	$ch = ltrim( rtrim( $results['computeHosts']['result']['cloud'] ) );
+	if( $ch == "This IP is not an AWS/Azure/GoogleCloud node." ) { $computehosts = 0; } else { $computehosts = 1; }
+	if( isset( $results['hola']['result'] ) ) { $hola = 1; } else { $hola = 0; };
+	if( isset( $results['dshield']['result']['attacks'] ) ) { $dshield = intval( $results['dshield']['result']['attacks'] ); } else { $dshield = 0; }
+	if( isset( $results['sorbs']['result'] ) ) {
+		$sorbs = 0;
+		foreach( $results['sorbs']['result']['entries'] as $entry ) {
+			$e = explode( " ", $entry );
+			$r = $e[0];
+			$rip = explode( ".", $r );
+			$sorbs = $sorbs + $rip[4];
+		}
+	} else {
+		$sorbs = 0;
+	}
+	if( isset( $results['spamhaus']['result'] ) ) {
+		$spamhaus = 0;
+		foreach( $results['spamhaus']['result']['entries'] as $entry ) {
+			$e = explode( " ", $entry );
+			$r = $e[0];
+			$rip = explode( ".", $r );
+			$spamhaus = $spamhaus + $rip[3];
+		}
+	} else {
+		$spamhaus = 0;
+	}
+	$training = [$proxycheck, $getIPIntel, $ipqsproxy, $ipqsvpn, $ipqsmobile, $iphub, $teohrisk, $teohtype, $teohvpn, $teohhosting, $iphunter, $nofraud, $computehosts, $hola, $dshield, $sorbs, $spamhaus];
+	return( $training );
+}
 
 function logit( $user, $search, $method, $cached, $mysqli ) {
 	$hash = @md5( $_SERVER['HTTP_ACCEPT_LANGUAGE'] . $_SERVER['HTTP_ACCEPT_ENCODING'] . $_SERVER['HTTP_ACCEPT'] . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTP_DNT'] );
@@ -597,8 +703,22 @@ if( $host == $ip ) { $hostname = $ip; } else { $hostname = "$ip - $host"; }
 if( isset( $_GET['api'] ) ) {
     echo json_encode( $out );
 } else {
+	$ing = ingestTraining( $out );
+	if( isset( $_GET['train'] ) ) {
+		$tolabel = array();
+		array_push( $tolabel, $_GET['train'] );
+		$classifier->train( array( $ing ), $tolabel );
+		$modelManager->saveToFile($classifier, $modelPath );
+	}
+	$guess = $classifier->predict( $ing );
+	echo "<!--\n";
+	echo "Guess: $guess\n";
+	$ai = $guess;
+	print_r( $ing );
+	echo "\n-->\n";
     echo $twig->render( 'results.html.twig', [
 		'username' => $username,
+		'ai' => $ai,
         'hostname' => $hostname,
 		'currentver' => $currentver,
 		'ip' => $ip,

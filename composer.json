@@ -8,6 +8,7 @@
         "php" : "^7.2",
         "ext-curl": "*",
         "ext-json": "*",
+        "php-ai/php-ml": "*",
         "twig/twig": "^2.6",
         "guzzlehttp/guzzle": "^6.3"
     }
