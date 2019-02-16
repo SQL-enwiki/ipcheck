@@ -101,7 +101,10 @@ if( isset( $_GET['dbname'] ) ) {
 	$_SESSION['mwOAuthUrl'] = $mwOAuthUrl;
 } else {
 	if( !isset( $_SESSION['wiki'] ) ) {
-		header( 'Location: splash.php' );
+		// if( isset( $_GET['ip'] ) ) { $_SESSION['ip'] = $_GET['ip']; }
+		if( isset( $_GET['ip'] ) ) { $sip = "?ip=" . $_GET['ip']; } else { $sip = ""; }
+		session_write_close();
+		header( "Location: splash.php$sip" );
 		die();
 	}
 }
@@ -110,7 +113,8 @@ if ( isset( $_SESSION['tokenKey'] ) ) {
 	$gTokenKey = $_SESSION['tokenKey'];
 	$gTokenSecret = $_SESSION['tokenSecret'];
 }
-session_write_close();
+
+
 
 // Fetch the access token if this is the callback from requesting authorization
 if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
@@ -124,6 +128,7 @@ if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
 	//enable for production
 	$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
 	fetchAccessToken();
+	session_write_close();
 	header('Location: index.php');
 }
 
@@ -145,7 +150,9 @@ if( $identity !== FALSE ) {
 	$editcount = $identity->editcount;
 	$registration = $identity->registered;
 	$blocked = $identity->blocked;
-} else { die(); }
+	if( isset( $_SESSION['ip'] ) ) { $theip = $_SESSION['ip']; unset( $_SESSION['ip'] ); }
+	session_write_close();
+} else { session_write_close(); die(); }
 
 // ******************** CODE ********************
 

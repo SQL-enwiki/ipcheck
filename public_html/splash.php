@@ -1,5 +1,10 @@
 <?php
-
+session_name( 'IPCheck' );
+$params = session_get_cookie_params();
+session_set_cookie_params(
+	$params['lifetime'],
+	dirname( $_SERVER['SCRIPT_NAME'] )
+);
 require '../vendor/autoload.php';
 $loader = new Twig_Loader_Filesystem( __DIR__ . '/../views' );
 $twig = new Twig_Environment( $loader, [ 'debug' => true ] );
@@ -13,7 +18,9 @@ $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 $mysqli = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
 
 $query = 'select url, lang, family, dbname from wiki where is_closed = 0 order by dbname asc;';
-
+session_start();
+if( isset( $_GET['ip'] ) ) { $_SESSION['ip'] = $_GET['ip']; }
+session_write_close();
 $res = mysqli_query( $mysqli, $query );
 $opt = array();
 while( $row = mysqli_fetch_assoc( $res ) ) {

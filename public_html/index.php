@@ -21,7 +21,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
-
+session_name( 'IPCheck' );
+$params = session_get_cookie_params();
+session_set_cookie_params(
+	$params['lifetime'],
+	dirname( $_SERVER['SCRIPT_NAME'] )
+);
 $ts_pw = posix_getpwuid(posix_getuid());
 $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 $dbname = $ts_mycnf['user'] . '__ipcheck';
@@ -264,7 +269,7 @@ function checkSorbs( $ip ) {
     return( $sorbs_result );
 }
 
-$ip = $_GET['ip'];
+if( isset( $theip ) ) { $ip = $theip; } else { $ip = $_GET['ip']; }
 
 if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     echo $twig->render( 'base.html.twig', [
