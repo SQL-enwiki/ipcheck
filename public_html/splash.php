@@ -31,6 +31,7 @@ while( $row = mysqli_fetch_assoc( $res ) ) {
 }
 echo $twig->render( 'base.html.twig', [
 	'splash' => '1',
+	'currentver' => $currentver,
 	'options' => $opt
 ] );
 ?>

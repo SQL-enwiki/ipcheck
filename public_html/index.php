@@ -21,6 +21,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
+
 session_name( 'IPCheck' );
 $params = session_get_cookie_params();
 session_set_cookie_params(
@@ -284,8 +285,10 @@ if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     die();
 }
 $refresh = FALSE;
+$mtype = "";
 if( isset( $_GET['refresh'] ) ) {
 	$refresh = TRUE;
+	$mtype = "refresh";
 } elseif( file_exists( __DIR__ . "/../cache/$ip.json" ) ) {
 	$out = json_decode( file_get_contents( __DIR__ . "/../cache/$ip.json" ), true );
 	if( filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 < time() ) { 
@@ -581,18 +584,18 @@ if( $refresh === TRUE ) {
 	$out['cache']['result']['cached'] = 'no';
 	file_put_contents( __DIR__ . "/../cache/$ip.json", json_encode( $out ) );
 	if( isset( $_GET['api'] ) ) {
-		logit( $username, $ip, "api", 1, $mysqli );
+		logit( $username, $ip, "api" . $mtype, 1, $mysqli );
 	} else {
-		logit( $username, $ip, "manual", 1, $mysqli );
+		logit( $username, $ip, "manual" . $mtype, 1, $mysqli );
 	}
 } else {
 	$out['cache']['result']['cached'] = 'yes';
 	$out['cache']['result']['cachedate'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) );
 	$out['cache']['result']['cacheuntil'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 );
 	if( isset( $_GET['api'] ) ) {
-		logit( $username, $ip, "api", 0, $mysqli );
+		logit( $username, $ip, "api" . $mtype, 0, $mysqli );
 	} else {
-		logit( $username, $ip, "manual", 0, $mysqli );
+		logit( $username, $ip, "manual" . $mtype, 0, $mysqli );
 	}
 }
 

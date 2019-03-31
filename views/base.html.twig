@@ -30,6 +30,20 @@
                 <button type="submit" class="btn btn-default">Submit</button>
             </form>
 			{% endif %}
+			{% if stats is defined %}
+				<h3>Top 25 users this month</h3>
+				<ol>
+				{% for item in thismonth %}
+					<li>{{ item.user }} - {{ item.count }}</li>
+				{% endfor %}
+				</ol>
+			<h3>Top 25 users all time</h3>
+				<ol>
+				{% for item in alltime %}
+					<li>{{ item.user }} - {{ item.count }}</li>
+				{% endfor %}
+				</ol>
+			{% endif %}
 			{% if splash is defined %}
 			<h2>Log in</h2>
 			<form action='oauth.php?action=authorize'>
@@ -92,6 +106,8 @@
             </div>
             <div>
                 <a target="_blank" href="https://github.com/SQL-enwiki/ipcheck">View source</a>
+                &middot;
+				<a target="_blank" href="https://tools.wmflabs.org/ipcheck/stats.php">Stats</a>
                 &middot;
 				Current version: <a target="_blank" href="https://github.com/SQL-enwiki/ipcheck/commit/{{ currentver }}">{{ currentver }}</a>
 				&middot;
