@@ -41,7 +41,7 @@ $month = date( "n" );
 $year = date( "Y" );
 $lastmonth = strtotime( "$month/1/$year" );
 
-$query = "select log_user, count(*) from logging where log_timestamp > $lastmonth group by log_user order by count(*) desc limit 25;";
+$query = "select log_user, count(*) from logging where log_timestamp > $lastmonth and log_cached = 0 group by log_user order by count(*) desc limit 25;";
 $res = mysqli_query( $mysqli, $query );
 
 $thismonth = array();
@@ -55,7 +55,7 @@ while( $row = mysqli_fetch_assoc( $res ) ) {
 }
 
 
-$query = "select log_user, count(*) from logging group by log_user order by count(*) desc limit 25;";
+$query = "select log_user, count(*) from logging where log_cached = 0 group by log_user order by count(*) desc limit 25;";
 $res = mysqli_query( $mysqli, $query );
 $alltime = array();
 while( $row = mysqli_fetch_assoc( $res ) ) {
