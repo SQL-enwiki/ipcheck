@@ -347,7 +347,7 @@ if( $refresh === TRUE ) {
 
 	// Proxycheck.io setup
 	if( reportHit( "proxycheck-io" ) === TRUE ) { $out['proxycheck']['error'] = "API Queries exceeded. Try back later."; } else {
-		$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1" ), TRUE );
+		$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1&risk=1" ), TRUE );
 		if( isset( $proxycheckio['error'] ) ) {
 			$out['proxycheck']['error'] = $proxycheckio['error'];
 		} else {
@@ -356,6 +356,7 @@ if( $refresh === TRUE ) {
 				if( isset ( $proxycheckio[$ip]['last seen human'] ) ) { $out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human']; }
 				if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
 				if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
+				if( isset ( $proxycheckio[$ip]['risk'] ) ) { $out['proxycheck']['result']['risk'] = $proxycheckio[$ip]['risk']; }
 			}
 		}
 	}
