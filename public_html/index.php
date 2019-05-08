@@ -356,7 +356,7 @@ if( $refresh === TRUE ) {
 				if( isset ( $proxycheckio[$ip]['last seen human'] ) ) { $out['proxycheck']['result']['seen'] = $proxycheckio[$ip]['last seen human']; }
 				if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
 				if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
-				if( isset ( $proxycheckio[$ip]['risk'] ) ) { $out['proxycheck']['result']['risk'] = $proxycheckio[$ip]['risk']; }
+				if( isset ( $proxycheckio[$ip]['risk'] ) ) { $out['proxycheck']['result']['riska'] = $proxycheckio[$ip]['risk']; }
 			}
 		}
 	}
