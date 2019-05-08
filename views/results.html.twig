@@ -104,6 +104,9 @@
 								{% if data.result.pctype is defined %}
                                     Type: {{ data.result.pctype }}<br/>
                                 {% endif %}
+								{% if data.result.risk is defined %}
+                                    Risk Assessment: {{ data.result.risk }}<br/>
+                                {% endif %}
 								
 								{% if data.result.port is defined %}
                                     Port: {{ data.result.port }}<br/>
