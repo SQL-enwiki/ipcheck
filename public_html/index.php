@@ -62,8 +62,16 @@ if( $editcount < 500 ) { die( "I'm sorry, you can't use this application (1)\n" 
 $age = time() - strtotime( $registration );
 if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
 
-//Set up local SQL tables
+if( @!isset( $_GET['wiki'] ) ) { $wikiurl = "https://en.wikipedia.org"; } else {
+	$meta = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
+	$wname = mysqli_real_escape_string( $meta, $_GET['wiki'] );
+	$query = "select url from wiki where is_closed = 0 and dbname = '$wname' limit 1;";
+	$r = mysqli_query( $meta, $query );
+	$row = mysqli_fetch_assoc( $r );
+	$wikiurl = $row['url'];
+}
 
+//Set up local SQL tables
 
 mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `logging` (
 	`log_id` bigint NOT NULL AUTO_INCREMENT,
@@ -612,6 +620,7 @@ if( isset( $_GET['api'] ) ) {
 		'currentver' => $currentver,
 		'ip' => $ip,
         'out' => $out,
+		'wikiurl' => $wikiurl,
 		'apikey' => $apikey,
         'portscan' => isset( $_GET['portscan'] ),
     ] );
