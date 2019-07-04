@@ -39,7 +39,11 @@ $currentver = substr( file_get_contents( __DIR__. '/../.git/refs/heads/master' )
 
 $month = date( "n" );
 $year = date( "Y" );
+
 $lastmonth = strtotime( "$month/1/$year" );
+
+if( $month == 1 ) { $lmm = 12; } else { $lmm = $month - 1; }
+$lm = strtotime( "$lmm/1/$year" );
 
 $query = "select log_user, count(*) from logging where log_timestamp > $lastmonth and log_cached = 1 group by log_user order by count(*) desc limit 25;";
 $res = mysqli_query( $mysqli, $query );
@@ -54,6 +58,21 @@ while( $row = mysqli_fetch_assoc( $res ) ) {
 	array_push( $thismonth, $now );
 }
 
+$query = "select count(*) as num from logging where log_timestamp > $lastmonth and log_cached = 1;";
+$res = mysqli_query( $mysqli, $query );
+$c = mysqli_fetch_array( $res );
+$thismonth_num = $c['num'];
+
+$query = "select count(*) as num from logging where log_timestamp > $lm and log_timestamp < $lastmonth and log_cached = 1;";
+$res = mysqli_query( $mysqli, $query );
+$c = mysqli_fetch_array( $res );
+$lastmonth_num = $c['num'];
+
+$query = "select count( distinct log_user ) as num from logging;";
+$res = mysqli_query( $mysqli, $query );
+$c = mysqli_fetch_array( $res );
+$distinctusers = $c['num'];
+
 
 $query = "select log_user, count(*) from logging where log_cached = 1 group by log_user order by count(*) desc limit 25;";
 $res = mysqli_query( $mysqli, $query );
@@ -67,11 +86,21 @@ while( $row = mysqli_fetch_assoc( $res ) ) {
 	array_push( $alltime, $now );
 }
 
+$query = "select count(*) as num from logging where log_cached = 1;";
+$res = mysqli_query( $mysqli, $query );
+$c = mysqli_fetch_array( $res );
+$alltime_num = $c['num'];
+
+
 echo $twig->render( 'base.html.twig', [
 	'stats' => '1',
 	'thismonth' => $thismonth,
 	'currentver' => $currentver,
-	'alltime' => $alltime
+	'alltime' => $alltime,
+	'alltime_num' => $alltime_num,
+	'lastmonth_num' => $lastmonth_num,
+	'thismonth_num' => $thismonth_num,
+	'distinctusers' => $distinctusers
 ] );
 
 ?>

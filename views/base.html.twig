@@ -31,6 +31,12 @@
             </form>
 			{% endif %}
 			{% if stats is defined %}
+				<ul>
+					<li>Queries this month: {{ thismonth_num }}</li>
+					<li>Queries last month: {{ lastmonth_num }}</li>
+					<li>All-time queries: {{ alltime_num }}</li>
+					<li>Distinct Users: {{ distinctusers }}</li>
+				</ul>
 				<h3>Top 25 users this month</h3>
 				<ol>
 				{% for item in thismonth %}
