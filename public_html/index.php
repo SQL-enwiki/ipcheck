@@ -370,7 +370,7 @@ if( $refresh === TRUE ) {
 	];
 	//ComputeHost Detection
 	$wh = checkWebhost( $ip );
-	$out['webhost']['result'] = $wh;
+	$out['webhost']['result']['webhost'] = $wh;
 
 	// Proxycheck.io setup
 	if( reportHit( "proxycheck-io" ) === TRUE ) { $out['proxycheck']['error'] = "API Queries exceeded. Try back later."; } else {
