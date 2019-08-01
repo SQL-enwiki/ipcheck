@@ -43,6 +43,6 @@ echo $twig->render( 'base.html.twig', [
 	'options' => $opt,
 	'commonswiki' => $commonswikiIndex,
 	'enwiki' => $enwikiIndex,
-	'metawiki' => $metawikiIndex;
+	'metawiki' => $metawikiIndex
 ] );
 ?>
