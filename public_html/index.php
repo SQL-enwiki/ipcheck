@@ -343,9 +343,9 @@ if( $refresh === TRUE ) {
 		'ipHunter' => [
 			'title' => 'IPHunter'
 		],
-		'noFraud' => [
+		/*'noFraud' => [
 			'title' => 'Nofraud'
-		],
+		],*/
 		'ipstack' => [
 			'title' => 'ipstack.com'
 		],
@@ -463,7 +463,7 @@ if( $refresh === TRUE ) {
 	}
 
 	// IPHunter.info setup
-	if( reportHit( "iphunter" ) === TRUE ) { $out['nofraud']['error'] = "API Queries exceeded. Try back later."; } else {
+	if( reportHit( "iphunter" ) === TRUE ) { $out['iphunter']['error'] = "API Queries exceeded. Try back later."; } else {
 		$opts = array( 'http'=> array( 'header'=>"X-Key: $iphunterkey" ) );
 		$context = stream_context_create( $opts );
 		$iphunter = json_decode( file_get_contents( "https://www.iphunter.info:8082/v1/ip/$ip", false, $context ), true );
@@ -485,6 +485,7 @@ if( $refresh === TRUE ) {
 	}
 	
 	// Nofraud.co setup
+	/* Nofraud is unfortunately down. Will uncomment if/when they return.
 	if( reportHit( "nofraud" ) === TRUE ) { $out['nofraud']['error'] = "API Queries exceeded. Try back later."; } else {
 		if( strpos( $ip, ":" ) === FALSE ) {
 			$nofraud = file_get_contents( "http://api.nofraud.co/ip.php?ip=$ip" );
@@ -496,7 +497,7 @@ if( $refresh === TRUE ) {
 			$out['noFraud']['error'] = "Only IPv4 is supported";
 		}
 	}
-	
+	*/
 	// ipstack.com setup
 	if( reportHit( "ipstack" ) === TRUE ) { $out['ipstack']['error'] = "API Queries exceeded. Try back later."; } else {
 		$ipstack = json_decode( file_get_contents( "http://api.ipstack.com/$ip?access_key=$ipstackkey" ), TRUE );
