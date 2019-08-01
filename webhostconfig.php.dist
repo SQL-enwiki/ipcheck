@@ -1,0 +1,31 @@
+<?php
+$hosts = array();
+//Define hosts:
+/* Template:
+$hosts[''] = array( 
+	'name' => "", //Set the name to be displayed in headers
+	'asns' => array( '' ), //List of ASNs
+	'searchterms' => array( '' ), //List of items to search for in the whois
+	'blockname' => '' ); //Name to display in the block message		
+*/
+$hosts['azure'] = array( 
+	'name' => "Microsoft Azure", //Set the name to be displayed in headers
+	'asns' => array( 'azure' ), //List of ASNs
+	'searchterms' => array( ), //List of items to search for in the whois
+	'blockname' => 'Microsoft Azure' ); //Name to display in the block message		
+$hosts['amazon'] = array( 
+	'name' => "Amazon AWS", //Set the name to be displayed in headers
+	'asns' => array( 'amazon' ), //List of ASNs
+	'searchterms' => array( ), //List of items to search for in the whois
+	'blockname' => 'Amazon AWS' ); //Name to display in the block message		
+$hosts['google'] = array( 
+	'name' => "Google Cloud", //Set the name to be displayed in headers
+	'asns' => array( 'google' ), //List of ASNs
+	'searchterms' => array( ), //List of items to search for in the whois
+	'blockname' => 'Google Cloud' ); //Name to display in the block message		
+$hosts['digitalocean'] = array( 
+	'name' => "DigitalOcean", //Set the name to be displayed in headers
+	'asns' => array( '14061' ), //List of ASNs
+	'searchterms' => array( 'digitalocean', 'serverstack' ), //List of items to search for in the whois
+	'blockname' => 'DigitalOcean' ); //Name to display in the block message		
+?>
