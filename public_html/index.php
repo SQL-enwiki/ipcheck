@@ -162,7 +162,7 @@ function reportHit( $service ) {
 	$lservice['iphub'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
 	$lservice['iphunter'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
 	$lservice['ipqs'] = array( 'type' => 'month', 'limit' => 5000, 'type2' => 'month', 'limit2' => 5000 );
-	$lservice['nofraud'] = array( 'type' => 'day', 'limit' => 600, 'type2' => 'day', 'limit2' => 600 );
+	/* $lservice['nofraud'] = array( 'type' => 'day', 'limit' => 600, 'type2' => 'day', 'limit2' => 600 ); */
 	$lservice['proxycheck-io'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
 	$lservice['sorbs'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
 	$lservice['spamhaus'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
@@ -417,7 +417,7 @@ if( $refresh === TRUE ) {
 				'tor' => (bool)$ipqualityscore['tor'],
 				'recent_abuse' => (bool)$ipqualityscore['recent_abuse'],
 				'bot_status' => (bool)$ipqualityscore['bot_status'],
-				'fraud_score' => (bool)$ipqualityscore['fraud_score']				
+				'fraud_score' => $ipqualityscore['fraud_score']				
 			];
 		}
 	}
