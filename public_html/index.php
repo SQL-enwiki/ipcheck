@@ -370,9 +370,8 @@ if( $refresh === TRUE ) {
 	];
 	//ComputeHost Detection
 	$wh = checkWebhost( $ip );
-	if( $wh !== FALSE ) {
-		$out['webhost']['result'] = $wh;
-	}
+	$out['webhost']['result'] = $wh;
+
 	// Proxycheck.io setup
 	if( reportHit( "proxycheck-io" ) === TRUE ) { $out['proxycheck']['error'] = "API Queries exceeded. Try back later."; } else {
 		$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1&risk=1" ), TRUE );
@@ -639,7 +638,6 @@ if( isset( $_GET['api'] ) ) {
         'hostname' => $hostname,
 		'currentver' => $currentver,
 		'ip' => $ip,
-		'wh' => $wh,
         'out' => $out,
 		'wikiurl' => $wikiurl,
 		'apikey' => $apikey,

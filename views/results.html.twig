@@ -65,7 +65,7 @@
                                     ISP: {{ data.result.isp }}<br/>
                                 {% endif %}
                                 {% if data.result.webhost != false %}
-                                    Hosting ASN: {{ wh }}<br/>
+                                    Hosting ASN: {{ data.result.webhost }}<br/>
 									Check whois for more information<br/>
                                 {% endif %}								
 								{% if data.result.cached is defined %}
