@@ -64,8 +64,9 @@
                                 {% if data.result.isp is defined %}
                                     ISP: {{ data.result.isp }}<br/>
                                 {% endif %}
-                                {% if wh != false %}
-                                    Probable webhost: {{ wh }}<br/>
+                                {% if data.result.webhost != false %}
+                                    Hosting ASN: {{ wh }}<br/>
+									Check whois for more information<br/>
                                 {% endif %}								
 								{% if data.result.cached is defined %}
 									{% if data.result.cached == "yes" %}

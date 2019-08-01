@@ -322,6 +322,9 @@ if( isset( $_GET['refresh'] ) ) {
 }
 if( $refresh === TRUE ) {
 	$out = [
+		'webhost' => [
+			'title' => 'ASN/Whois Webhost Detection'
+		],
 		'proxycheck' => [
 			'title' => 'proxycheck.io'
 		],
@@ -368,7 +371,7 @@ if( $refresh === TRUE ) {
 	//ComputeHost Detection
 	$wh = checkWebhost( $ip );
 	if( $wh !== FALSE ) {
-		$whName = $wh;
+		$out['webhost']['result'] = $wh;
 	}
 	// Proxycheck.io setup
 	if( reportHit( "proxycheck-io" ) === TRUE ) { $out['proxycheck']['error'] = "API Queries exceeded. Try back later."; } else {
