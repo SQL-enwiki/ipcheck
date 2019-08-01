@@ -323,7 +323,7 @@ if( isset( $_GET['refresh'] ) ) {
 if( $refresh === TRUE ) {
 	$out = [
 		'webhost' => [
-			'title' => 'ASN/Whois Webhost Detection'
+			'title' => 'ASN Webhost Detection'
 		],
 		'proxycheck' => [
 			'title' => 'proxycheck.io'

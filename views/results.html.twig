@@ -65,7 +65,11 @@
                                     ISP: {{ data.result.isp }}<br/>
                                 {% endif %}		
 								{% if data.result.webhost is defined %}
-                                    Likely webhost: {{ data.result.webhost }}<br/>
+									{% if data.result.webhost != false %}
+										Likely webhost: {{ data.result.webhost }}<br/>
+										{% else %}
+										Not a known hosting ASN
+									{% endif %}
                                 {% endif %}		
 								{% if data.result.cached is defined %}
 									{% if data.result.cached == "yes" %}
