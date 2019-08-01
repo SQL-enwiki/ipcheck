@@ -411,8 +411,13 @@ if( $refresh === TRUE ) {
 			$out['ipQualityScore']['result'] = [
 				'proxy' => (bool)$ipqualityscore['proxy'],
 				'isp' => $ipqualityscore['ISP'],
+				'organization' => $ipqualityscore['organization'],
 				'vpn' => (bool)$ipqualityscore['vpn'],
 				'mobile' => (bool)$ipqualityscore['mobile'],
+				'tor' => (bool)$ipqualityscore['tor'],
+				'recent_abuse' => (bool)$ipqualityscore['recent_abuse'],
+				'bot_status' => (bool)$ipqualityscore['bot_status'],
+				'fraud_score' => (bool)$ipqualityscore['fraud_score']				
 			];
 		}
 	}

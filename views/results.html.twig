@@ -147,6 +147,21 @@
                                 {% if data.result.mobile is defined %}
                                     {{ helper.boolValue(data.result.mobile) }} Mobile<br/>
                                 {% endif %}
+                                {% if data.result.recent_abuse is defined %}
+                                    {{ helper.boolValue(data.result.recent_abuse) }} Recent Abuse<br/>
+                                {% endif %}
+                                {% if data.result.tor is defined %}
+                                    {{ helper.boolValue(data.result.tor) }} Tor<br/>
+                                {% endif %}
+                                {% if data.result.bot_status is defined %}
+                                    {{ helper.boolValue(data.result.bot_status) }} Bot<br/>
+                                {% endif %}
+                                {% if data.result.fraud_score is defined %}
+                                    Fraud Score: {{ data.result.fraud_score }} <br/>
+                                {% endif %}								
+                                {% if data.result.organization is defined %}
+                                    Organization: {{ data.result.organization }}<br/>
+                                {% endif %}								
                                 {% if data.result.hosting is defined %}
                                     {{ helper.boolValue(data.result.hosting) }} Hosting<br/>
                                 {% endif %}
