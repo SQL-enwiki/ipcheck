@@ -63,13 +63,10 @@
                                 {## Things that don't use boolValue() (e.g. no tick or cross) go here #}
                                 {% if data.result.isp is defined %}
                                     ISP: {{ data.result.isp }}<br/>
-                                {% endif %}
-                                {% if data.result.webhost != false %}
-                                    Hosting ASN: {{ data.result.webhost }}<br/>
-									Check whois for more information<br/>
-								{% else %}
-									Not a known webhosting ASN
-                                {% endif %}								
+                                {% endif %}		
+								{% if data.result.webhost is defined %}
+                                    Likely webhost: {{ data.result.webhost }}<br/>
+                                {% endif %}		
 								{% if data.result.cached is defined %}
 									{% if data.result.cached == "yes" %}
 										Cached: {{ data.result.cached }} <a href="index.php?ip={{ ip }}&refresh=true">Refresh</a><br/>
