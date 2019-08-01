@@ -64,7 +64,9 @@
                                 {% if data.result.isp is defined %}
                                     ISP: {{ data.result.isp }}<br/>
                                 {% endif %}
-								
+                                {% if wh != false %}
+                                    Probable webhost: {{ wh }}<br/>
+                                {% endif %}								
 								{% if data.result.cached is defined %}
 									{% if data.result.cached == "yes" %}
 										Cached: {{ data.result.cached }} <a href="index.php?ip={{ ip }}&refresh=true">Refresh</a><br/>

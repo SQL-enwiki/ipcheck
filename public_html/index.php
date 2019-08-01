@@ -35,6 +35,19 @@ $mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf[
 mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
 mysqli_select_db( $mysqli, $dbname );
 
+function checkWebhost( $ip ) {
+	include( '../webhostconfig.php' );
+	$asn = json_decode( file_get_contents( "https://api.iptoasn.com/v1/as/ip/$ip" ), TRUE );
+	$webhost = FALSE;
+	foreach( $hosts as $host ) {
+		$asnum = $asn['as_number'];
+		if( in_array( $asn['as_number'], $host['asns'] ) !== FALSE ) {
+			$webhost = $host['name'];
+		}
+	}
+	return( $webhost );
+}
+
 require '../vendor/autoload.php';
 if( $_GET['api'] != "true" ) {
 	include( "oauth.php" );
@@ -352,7 +365,11 @@ if( $refresh === TRUE ) {
 			'title' => 'Cache'
 		]
 	];
-
+	//ComputeHost Detection
+	$wh = checkWebhost( $ip );
+	if( $wh !== FALSE ) {
+		$whName = $wh;
+	}
 	// Proxycheck.io setup
 	if( reportHit( "proxycheck-io" ) === TRUE ) { $out['proxycheck']['error'] = "API Queries exceeded. Try back later."; } else {
 		$proxycheckio = json_decode( file_get_contents( "http://proxycheck.io/v2/$ip?key=$proxycheckkey&vpn=1&port=1&seen=1&risk=1" ), TRUE );
@@ -619,6 +636,7 @@ if( isset( $_GET['api'] ) ) {
         'hostname' => $hostname,
 		'currentver' => $currentver,
 		'ip' => $ip,
+		'wh' => $wh,
         'out' => $out,
 		'wikiurl' => $wikiurl,
 		'apikey' => $apikey,
