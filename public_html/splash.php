@@ -41,8 +41,8 @@ echo $twig->render( 'base.html.twig', [
 	'splash' => '1',
 	'currentver' => $currentver,
 	'options' => $opt,
-	'commonswiki' = $commonswikiIndex,
-	'enwiki' = $enwikiIndex,
-	'metawiki' = $metawikiIndex;
+	'commonswiki' => $commonswikiIndex,
+	'enwiki' => $enwikiIndex,
+	'metawiki' => $metawikiIndex;
 ] );
 ?>
