@@ -1,5 +1,6 @@
 /vendor/
 .idea/
+webhostconfig.php
 credentials.php
 /sources/
 /cache/
