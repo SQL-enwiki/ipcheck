@@ -23,15 +23,26 @@ if( isset( $_GET['ip'] ) ) { $_SESSION['ip'] = $_GET['ip']; }
 session_write_close();
 $res = mysqli_query( $mysqli, $query );
 $opt = array();
+$enwikiIndex = 0;
+$commonswikiIndex = 0;
+$metawikiIndex = 0;
+$baseindex = 0;
 while( $row = mysqli_fetch_assoc( $res ) ) {
 	$murl = parse_url( $row['url'],  PHP_URL_HOST );
 	$murl = substr( $murl, 0, -4 );
 	$row['url'] = $murl;
+	if( $row['dbname'] == "enwiki" ) { $enwikiIndex = $baseindex; }
+	if( $row['dbname'] == "commonswiki" ) { $commonswikiIndex = $baseindex; }
+	if( $row['dbname'] == "metawiki" ) { $metawikiIndex = $baseindex; }
 	array_push( $opt, $row );
+	$baseindex++;
 }
 echo $twig->render( 'base.html.twig', [
 	'splash' => '1',
 	'currentver' => $currentver,
-	'options' => $opt
+	'options' => $opt,
+	'commonswiki' = $commonswikiIndex,
+	'enwiki' = $enwikiIndex,
+	'metawiki' = $metawikiIndex;
 ] );
 ?>
