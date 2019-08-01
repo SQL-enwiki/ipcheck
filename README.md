@@ -10,6 +10,7 @@ IPCheck - Proxy Checker
 Requires PHP 7.2.
 
 1. `cp credentials.php.dist credentials.php` and fill in your API keys.
+1. `cp webhostconfig.php.dist webhostconfig.php` and fill in your webhost detection settings.
 1. `cp oauth.ini.dist oauth.ini` and fill in your OAuth consumer keys.
 1. `composer install`
 1. `cd public_html && php -S localhost:8000`
