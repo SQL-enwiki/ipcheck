@@ -67,6 +67,8 @@
                                 {% if data.result.webhost != false %}
                                     Hosting ASN: {{ data.result.webhost }}<br/>
 									Check whois for more information<br/>
+								{% else %}
+									Not a known webhosting ASN
                                 {% endif %}								
 								{% if data.result.cached is defined %}
 									{% if data.result.cached == "yes" %}
