@@ -64,7 +64,7 @@
 						document.getElementById("dbname").selectedIndex = {{ commonswiki }};
 					}
 				</script>
-				Select your wiki: <select name='dbname'>
+				Select your wiki: <select name='dbname' id='dbname'>
 					{% for item in options %}
 						<option value="{{ item.dbname }}" {% if item.dbname == "enwiki" %} selected="selected" {% endif %} > {{ item.url }}</option>
 					{% endfor %}
