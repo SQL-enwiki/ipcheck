@@ -91,6 +91,11 @@
 								{% if data.result.country is defined %}
                                     Country: {{ data.result.country }}<br/>
                                 {% endif %}
+								{% if data.result.appears == 1 %}
+									<a href="https://www.stopforumspam.com/ipcheck/"{{ ip }}">Listing</a>
+								{% else %}
+									Not listed
+								{% endif %}
 								{% if data.result.attacks is defined %}
                                     Attacks seen: {{ data.result.attacks }}<br/>
                                 {% endif %}
