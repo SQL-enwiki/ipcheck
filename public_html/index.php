@@ -449,14 +449,14 @@ if( $refresh === TRUE ) {
 
 	// stopforumspam setup
 	if( reportHit( "stopforumspam" ) === TRUE ) { $out['stopforumspam']['error'] = "API Queries exceeded. Try back later."; } else {
-		$sfsurl = "https://ip.teoh.io/api/vpn/$ip?key=$teohkey";
+		$sfsurl = "http://api.stopforumspam.org/api?ip=9$ip&json";
 		$sfs = json_decode( file_get_contents( $sfsurl ), true );
 		if( @!isset( $sfs['ip'] ) ) {
 			$out['stopforumspam']['error'] = true;
 		} else {
 			$appaears = $sfs['ip']['appears'];
 			$out['stopforumspam']['result'] = [
-				'appears' => $appears,
+				'appears' => $appears
 			];
 		}
 	}
