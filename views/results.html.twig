@@ -93,10 +93,10 @@
                                 {% endif %}
 								{% if data.result.appears is defined %}
 									{% if data.result.appears == 1 %}
-										Listed, see <a href="https://www.stopforumspam.com/ipcheck/{{ ip }}">details</a>< br />
-										Frequency: {{ data.result.frequency }}
-										Last Seen: {{ data.result.lastseen }}
-										Confidence: {{ data.result.confidence }}
+										Listed, see <a href="https://www.stopforumspam.com/ipcheck/{{ ip }}">details</a><br />
+										Frequency: {{ data.result.frequency }}<br />
+										Last Seen: {{ data.result.lastseen }}<br />
+										Confidence: {{ data.result.confidence }}<br />
 										Country: {{ data.result.sfscountry }}
 									{% else %}
 										Not listed
