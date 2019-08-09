@@ -455,9 +455,22 @@ if( $refresh === TRUE ) {
 			$out['stopforumspam']['error'] = true;
 		} else {
 			$appears = $sfs['ip']['appears'];
-			$out['stopforumspam']['result'] = [
-				'appears' => $appears
-			];
+			if( $appears == 1 ) {
+				$frequency = $sfs['ip']['frequency'];
+				$confidence = $sfs['ip']['confidence'];
+				$lastseen = $sfs['ip']['lastseen'];
+				$country = $sfs['ip']['country'];
+				$out['stopforumspam']['result'] = [
+					'appears' => $appears,
+					'confidence' => $confidence,
+					'lastseen' => $lastseen,
+					'sfscountry' => $country
+				];
+			} else {
+				$out['stopforumspam']['result'] = [
+					'appears' => $appears
+				];
+			}
 		}
 	}
 	
