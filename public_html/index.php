@@ -446,15 +446,15 @@ if( $refresh === TRUE ) {
 			}
 		}
 	}
-
+	
 	// stopforumspam setup
 	if( reportHit( "stopforumspam" ) === TRUE ) { $out['stopforumspam']['error'] = "API Queries exceeded. Try back later."; } else {
-		$sfsurl = "http://api.stopforumspam.org/api?ip=9$ip&json";
+		$sfsurl = "http://api.stopforumspam.org/api?ip=$ip&json";
 		$sfs = json_decode( file_get_contents( $sfsurl ), true );
-		if( @!isset( $sfs['ip'] ) ) {
+		if( $sfs['success'] !== 1 ) {
 			$out['stopforumspam']['error'] = true;
 		} else {
-			$appaears = $sfs['ip']['appears'];
+			$appears = $sfs['ip']['appears'];
 			$out['stopforumspam']['result'] = [
 				'appears' => $appears
 			];
