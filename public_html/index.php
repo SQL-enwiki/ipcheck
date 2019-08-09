@@ -460,11 +460,14 @@ if( $refresh === TRUE ) {
 				$confidence = $sfs['ip']['confidence'];
 				$lastseen = $sfs['ip']['lastseen'];
 				$country = $sfs['ip']['country'];
+				$delegated = $sfs['ip']['delegated'];
 				$out['stopforumspam']['result'] = [
 					'appears' => $appears,
 					'confidence' => $confidence,
+					'frequency' => $frequency,
 					'lastseen' => $lastseen,
-					'sfscountry' => $country
+					'sfscountry' => $country,
+					'delegated' => $delegated
 				];
 			} else {
 				$out['stopforumspam']['result'] = [
