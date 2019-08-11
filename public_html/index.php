@@ -606,11 +606,10 @@ if( $refresh === TRUE ) {
 
 	// Check SpamCop setup
 	$spamcopResult = checkSpamcop( $ip );
-		if( $spamcopResult !== false ) {
-			$out['spamcop']['result']['listed'] = TRUE;
-		} else {
-			$out['spamcop']['result']['listed'] = FALSE;
-		}
+	if( $spamcopResult !== false ) {
+		$out['spamcop']['result']['listed'] = TRUE;
+	} else {
+		$out['spamcop']['result']['listed'] = FALSE;
 	}
 	
 	//DShield setup
