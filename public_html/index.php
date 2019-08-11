@@ -239,6 +239,13 @@ function checkSpamhaus( $ip ) {
     return( $spamhaus_result );
 }
 
+function checkSpamcop( $ip ) {
+	$r_ip = explode( ".", $ip );
+	$ip = $r_ip[3] . "." . $r_ip[2] . "." . $r_ip[1] . "." . $r_ip[0];
+	$dnsres = dns_get_record( $ip . ".bl.spamcop.net", DNS_A );
+	if( $dnsres === FALSE ) { return( FALSE ); } else { return( TRUE ); }
+}
+
 function checkSorbs( $ip ) {
     //Check sorbs DNSBL, more information at http://www.sorbs.net/general/using.shtml
     $dnsres = dns_get_record( $ip . ".dnsbl.sorbs.net", DNS_A );
@@ -360,6 +367,9 @@ if( $refresh === TRUE ) {
 		],
 		'spamhaus' => [
 			'title' => 'Spamhaus ZEN DNSBL'
+		],
+		'spamcop' => [
+			'title' => 'Spamcop DNSBL'
 		],
 		'dshield' => [
 			'title' => 'DShield'
@@ -591,6 +601,15 @@ if( $refresh === TRUE ) {
 			foreach( $spamhausResult as $sr ) {
 				$out['spamhaus']['result']['entries'][] = $sr[0] . " - " . $sr[1];
 			}
+		}
+	}
+
+	// Check SpamCop setup
+	$spamcopResult = checkSpamcop( $ip );
+		if( $spamcopResult !== false ) {
+			$out['spamcop']['result']['listed'] = TRUE;
+		} else {
+			$out['spamcop']['result']['listed'] = FALSE;
 		}
 	}
 	

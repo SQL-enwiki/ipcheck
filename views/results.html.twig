@@ -84,7 +84,7 @@
                                 {% endif %}
 								{% if data.result.state is defined %}
                                     State: {{ data.result.state }}<br/>
-                                {% endif %}								
+                                {% endif %}															
 								{% if data.result.zip is defined %}
                                     Zip: {{ data.result.zip }}<br/>
                                 {% endif %}								
@@ -141,7 +141,14 @@
 								{% if data.cache is defined %}
                                     Cached: {{ data.cache }}<br/>
                                 {% endif %}
-								
+								{% if data.result.listed is defined %}
+                                    {{ helper.boolValue( data.result.listed ) }}
+									{% if data.result.listed == TRUE %}
+										<a href="https://www.spamcop.net/w3m?action=checkblock&ip={{ ip }}">Listed</a><br />
+									{% else %}	
+										Not Listed<br />
+									{% endif %}	
+                                {% endif %}	
                                 {% if data.result.chance %}
                                     {% if data.result.chance > 90 %}
                                         {{ helper.boolValue(true) }}
