@@ -243,7 +243,7 @@ function checkSpamcop( $ip ) {
 	$r_ip = explode( ".", $ip );
 	$ip = $r_ip[3] . "." . $r_ip[2] . "." . $r_ip[1] . "." . $r_ip[0];
 	$dnsres = dns_get_record( $ip . ".bl.spamcop.net", DNS_A );
-	if( $dnsres === FALSE ) { return( FALSE ); } else { return( TRUE ); }
+	if( $dnsres != "127.0.0.2" ) { return( FALSE ); } else { return( TRUE ); }
 }
 
 function checkSorbs( $ip ) {
