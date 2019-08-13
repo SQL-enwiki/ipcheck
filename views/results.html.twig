@@ -149,6 +149,9 @@
 										Not Listed<br />
 									{% endif %}	
                                 {% endif %}	
+                                {% if data.result.tornode %}
+                                        {{ helper.boolValue(data.result.tornode) }} TOR Node<br/>
+                                {% endif %}
                                 {% if data.result.chance %}
                                     {% if data.result.chance > 90 %}
                                         {{ helper.boolValue(true) }}

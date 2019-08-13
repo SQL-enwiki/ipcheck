@@ -246,6 +246,16 @@ function checkSpamcop( $ip ) {
 	if( $dnsres[0]['ip'] != "127.0.0.2" ) { return( FALSE ); } else { return( TRUE ); }
 }
 
+function checkTor( $ip ) {
+	$torapi = "https://onionoo.torproject.org/summary?search=$ip";
+	$tor = json_decode( file_get_contents( $torapi ), TRUE );
+	if( @$tor['relays'][0]['a'][0] == $ip ) {
+		return( TRUE );
+	} else {
+		return( FALSE );
+	}
+}
+
 function checkSorbs( $ip ) {
     //Check sorbs DNSBL, more information at http://www.sorbs.net/general/using.shtml
     $dnsres = dns_get_record( $ip . ".dnsbl.sorbs.net", DNS_A );
@@ -359,6 +369,12 @@ if( $refresh === TRUE ) {
 		'stopforumspam' => [
 			'title' => 'StopForumSpam'
 		],
+		'hola' => [
+			'title' => 'Hola'
+		],
+		'tor' => [
+			'title' => 'TOR'
+		],
 		'computeHosts' => [
 			'title' => 'Compute Hosts'
 		],
@@ -373,9 +389,6 @@ if( $refresh === TRUE ) {
 		],
 		'dshield' => [
 			'title' => 'DShield'
-		],
-		'hola' => [
-			'title' => 'Hola'
 		],
 		'cache' => [
 			'title' => 'Cache'
@@ -581,6 +594,12 @@ if( $refresh === TRUE ) {
 		'cloud' => $chisp,
 	];
 
+	//Check if this is a tor node via onionoo
+	if( checkTor( $ip ) === TRUE ) {
+		$out['tor']['result']['tornode'] = TRUE;
+	} else {
+		$out['tor']['result']['tornode'] = FALSE;
+	}
 
 	// Check Sorbs setup
 	if( reportHit( "sorbs" ) === TRUE ) { $out['sorbs']['error'] = "API Queries exceeded. Try back later."; } else {
