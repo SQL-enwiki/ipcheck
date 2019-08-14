@@ -698,6 +698,11 @@ if( $refresh === TRUE ) {
 		logit( $username, $ip, "manual" . $mtype, 1, $mysqli );
 	}
 } else {
+	$ipbase = "";
+	if( strpos( $ip, ":" ) === FALSE ) {
+		$ipbase_e = explode( ".", $ip );
+		$ipbase = $ipbase_e[0] . "." . $ipbase_e[1] . "." . $ipbase_e[2] . ".";
+	}
 	$out['cache']['result']['cached'] = 'yes';
 	$out['cache']['result']['cachedate'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) );
 	$out['cache']['result']['cacheuntil'] = date( "M j G:i:s T Y", filemtime( __DIR__ . "/../cache/$ip.json" ) + 604800 );
