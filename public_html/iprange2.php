@@ -109,7 +109,7 @@ if( @!isset($_GET['iprange']) ) {
 showheader();
 $iprange = $_GET['iprange'];
 echo "<H3>Interesting IP addresses in $iprange</H3>\n";
-$i = $interesting( $iprange );
+$i = interesting( $iprange );
 echo "<ul>\n";
 foreach( $i as $ip => $host ) {
 	echo "<li>$ip - $host</li>\n";
