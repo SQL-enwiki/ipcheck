@@ -97,9 +97,9 @@ if( @!isset($_GET['iprange']) ) {
 		die();	
 	}
 	$range = explode( "/", $_GET['iprange'] );
-	if( $range[1] < 24 || $range > 32 ) {
+	$r = $range[1];
+	if( $r < 24 || $r > 32 ) {
 		showheader();
-		$r = $range[1];
 		echo "<h3>Range ($r) is too wide (no bigger than /24!) or too small (no smaller than /32!)?</h3>\n";
 		showform();
 		showfooter();
