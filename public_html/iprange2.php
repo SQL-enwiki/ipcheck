@@ -100,7 +100,7 @@ if( @!isset($_GET['iprange']) ) {
 	if( $range < 24 || $range > 32 ) {
 		showheader();
 		echo "<h3>Range is too wide (or too small?)</h3>\n";
-		showform()
+		showform();
 		showfooter();
 	}
 }
