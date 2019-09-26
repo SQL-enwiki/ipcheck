@@ -75,7 +75,7 @@ function showheader() {
 }
 function showform() {
 	echo '
-	<form action="iprange.php" method="get">
+	<form action="iprange2.php" method="get">
 	  <h3>IP Range:
 	  <input type="text" name="iprange" value= "8.8.8.8/24" size = "12"></h3>
 	  <br><br>
