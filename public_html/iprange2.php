@@ -89,7 +89,7 @@ if( @!isset($_GET['iprange']) ) {
 	showfooter();
 	die();
 } else {
-	if( preg_match( "/^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/i", $_GET['iprange'] ) {
+	if( preg_match( "/^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/i", $_GET['iprange'] ) ) {
 		showheader();
 		echo "<h3>Invalid IPv4 CIDR</h3>";
 		showform();
