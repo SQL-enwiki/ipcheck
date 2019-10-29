@@ -71,6 +71,14 @@ if( $_GET['api'] != "true" ) {
 include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
 
+if(file_exists( "../whitelist.php" ) {
+	include( ../whitelist.php" );
+	if( in_array( $username, $whitelist )  === TRUE ) {
+		$editcount = 999;
+		$age = 99999999;
+	}
+}
+
 if( $editcount < 500 ) { die( "I'm sorry, you can't use this application (1)\n" ); }
 $age = time() - strtotime( $registration );
 if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
