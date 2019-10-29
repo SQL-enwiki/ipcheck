@@ -35,6 +35,16 @@ $mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf[
 mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
 mysqli_select_db( $mysqli, $dbname );
 
+function getGlobalEdits( $user ) {
+	$userSanitized = urlencode( $user );
+	$api = "https://en.wikipedia.org/w/api.php?action=query&format=json&meta=globaluserinfo&guiuser=$userSanitized&guiprop=editcount";
+	$apiResult = json_decode( file_get_contents( $api ), TRUE );
+	$res = array();
+	$res['edits'] = $apiResult['query']['globaluserinfo']['editcount'];
+	$res['age'] = time() - strtotime( $apiResult['query']['globaluserinfo']['registration'] );
+	return( $res );
+}
+
 function checkWebhost( $ip ) {
 	include( '../webhostconfig.php' );
 	$asn = json_decode( file_get_contents( "https://api.iptoasn.com/v1/as/ip/$ip" ), TRUE );
@@ -78,11 +88,19 @@ if(file_exists( "../whitelist.php" ) ) {
 		$age = 99999999;
 	}
 }
-
-if( $editcount < 500 ) { die( "I'm sorry, you can't use this application. Minimum edit count is 500, and you only have $editcount.\n" ); }
+$fail = FALSE;
 $age = time() - strtotime( $registration );
 $ageDays = round( $age / 86400, 2 );
-if( $age < 2592000 ) { die( "I'm sorry, you can't use this application. Your account must be at least 30 days old, but it is only approximately $ageDays old.\n" ); }
+if( $editcount < 500 || $age < 2592000 ) { $fail = TRUE; }
+
+if( $fail === TRUE ) {
+	$globalEdits = getGlobalEdits( $username );
+	if( $globalEdits['edits'] < 500 || $globalEdits['age'] < 2592000 ) {
+		$globalAgeDays = round( $globalEdits['age'] / 86400, 2 );
+		$globalEditCount = $globalEdits['edits'];
+		die( "The requirements to use this tool are more than 500 edits, or your account being over 30 days old. Your account has $editcount locally ($globalEditCount globally), and is only $ageDays old locally ($globalAgeDays globally).\n" );
+	}
+}
 
 if( @!isset( $_GET['wiki'] ) ) { $wikiurl = "https://en.wikipedia.org"; } else {
 	$meta = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
