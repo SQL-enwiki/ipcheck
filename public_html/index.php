@@ -79,9 +79,10 @@ if(file_exists( "../whitelist.php" ) ) {
 	}
 }
 
-if( $editcount < 500 ) { die( "I'm sorry, you can't use this application (1)\n" ); }
+if( $editcount < 500 ) { die( "I'm sorry, you can't use this application. Minimum edit count is 500, and you only have $editcount.\n" ); }
 $age = time() - strtotime( $registration );
-if( $age < 2592000 ) { die( "I'm sorry, you can't use this application ($age)\n" ); }
+$ageDays = round( $age / 86400, 2 );
+if( $age < 2592000 ) { die( "I'm sorry, you can't use this application. Your account must be at least 30 days old, but it is only approximately $ageDays old.\n" ); }
 
 if( @!isset( $_GET['wiki'] ) ) { $wikiurl = "https://en.wikipedia.org"; } else {
 	$meta = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
