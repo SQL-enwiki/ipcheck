@@ -72,7 +72,7 @@ include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
 
 if(file_exists( "../whitelist.php" ) {
-	include( ../whitelist.php" );
+	include( "../whitelist.php" );
 	if( in_array( $username, $whitelist )  === TRUE ) {
 		$editcount = 999;
 		$age = 99999999;
