@@ -715,7 +715,7 @@ if( $refresh === TRUE ) {
 	$ipbase = "";
 	if( strpos( $ip, ":" ) === FALSE ) {
 		$ipbase_e = explode( ".", $ip );
-		$ipbase = $ipbase_e[0] . "." . $ipbase_e[1] . "." . $ipbase_e[2] . ".";
+		$ipbase = $ipbase_e[0] . "." . $ipbase_e[1] . "." . $ipbase_e[2];
 	}
 	$out['cache']['result']['cached'] = 'no';
 	file_put_contents( __DIR__ . "/../cache/$ip.json", json_encode( $out ) );
