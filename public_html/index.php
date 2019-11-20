@@ -337,6 +337,8 @@ function checkSorbs( $ip ) {
 
 if( isset( $theip ) ) { $ip = $theip; } else { $ip = $_GET['ip']; }
 
+$ip = ltrim( rtrim ( $ip ) );
+
 if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     echo $twig->render( 'base.html.twig', [
 		'username' => $username,
