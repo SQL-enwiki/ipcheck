@@ -185,7 +185,7 @@ function reportHit( $service ) {
 		$stat['rmin'] = 1;
 	}
 	//Set up limits
-	$lservice['getipintel'] = array( 'type' => 'min', 'limit' => 15, 'type2' => 'day', 'limit2' => 500 );
+	$lservice['getipintel'] = array( 'type' => 'min', 'limit' => 15, 'type2' => 'day', 'limit2' => 5000 );
 	$lservice['iphub'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
 	$lservice['iphunter'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
 	$lservice['ipqs'] = array( 'type' => 'month', 'limit' => 50000, 'type2' => 'month', 'limit2' => 50000 );
