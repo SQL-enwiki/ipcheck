@@ -88,7 +88,7 @@ if( isset( $_SESSION['mwOAuthUrl'] ) ) {
 }
 
 $_SESSION['wiki'] = 'enwiki';
-$wiki = $_GET['dbname'];
+$wiki = 'enwiki';
 $ts_pw = posix_getpwuid(posix_getuid());
 $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 
