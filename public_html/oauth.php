@@ -86,28 +86,20 @@ session_start();
 if( isset( $_SESSION['mwOAuthUrl'] ) ) {
 	$mwOAuthUrl = $_SESSION['mwOAuthUrl'];
 }
-if( isset( $_GET['dbname'] ) ) {
-	$_SESSION['wiki'] = $_GET['dbname'];
-	$wiki = $_GET['dbname'];
-	$ts_pw = posix_getpwuid(posix_getuid());
-	$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
-	
-	$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
-	$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
-	$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
-	mysqli_close( $my_oa );
-	//enable for production
-	$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
-	$_SESSION['mwOAuthUrl'] = $mwOAuthUrl;
-} else {
-	if( !isset( $_SESSION['wiki'] ) ) {
-		// if( isset( $_GET['ip'] ) ) { $_SESSION['ip'] = $_GET['ip']; }
-		if( isset( $_GET['ip'] ) ) { $sip = "?ip=" . $_GET['ip']; } else { $sip = ""; }
-		session_write_close();
-		header( "Location: splash.php$sip" );
-		die();
-	}
-}
+
+$_SESSION['wiki'] = 'enwiki';
+$wiki = $_GET['dbname'];
+$ts_pw = posix_getpwuid(posix_getuid());
+$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
+
+$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
+$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
+$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
+mysqli_close( $my_oa );
+//enable for production
+$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
+$_SESSION['mwOAuthUrl'] = $mwOAuthUrl;
+
 $wiki = $_SESSION['wiki'];
 if ( isset( $_SESSION['tokenKey'] ) ) {
 	$gTokenKey = $_SESSION['tokenKey'];
