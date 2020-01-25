@@ -53,28 +53,7 @@
 			{% if splash is defined %}
 			<h2>Log in</h2>
 			<form action='oauth.php?action=authorize'>
-			    <script>
-					function SelectEnwiki() {
-						document.getElementById("dbname").selectedIndex = {{ enwiki }};
-					}
-					function SelectMetawiki() {
-						document.getElementById("dbname").selectedIndex = {{ metawiki }};
-					}
-					function SelectCommonswiki() {
-						document.getElementById("dbname").selectedIndex = {{ commonswiki }};
-					}
-				</script>
-				Select your wiki: <select name='dbname' id='dbname'>
-					{% for item in options %}
-						<option value="{{ item.dbname }}" {% if item.dbname == "enwiki" %} selected="selected" {% endif %} > {{ item.url }}</option>
-					{% endfor %}
-				</select>
 				<input type="submit"><br /><br />
-				Quick select:<br /><br />
-			    <a href="#" onclick="SelectEnwiki()">English Wikipedia</a><br />
-				<a href="#" onclick="SelectCommonswiki()">Wikimedia Commons</a><br />
-				<a href="#" onclick="SelectMetawiki()">MetaWiki</a><br />
-
 			</form>
 			{% endif %}
             {% block results %}
