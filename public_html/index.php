@@ -21,6 +21,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
+include( "../credentials.php" );
+include( "../config.php" );
 
 session_name( 'IPCheck' );
 $params = session_get_cookie_params();
@@ -30,7 +32,7 @@ session_set_cookie_params(
 );
 $ts_pw = posix_getpwuid(posix_getuid());
 $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
-$dbname = $ts_mycnf['user'] . '__ipcheck';
+$dbname = $ts_mycnf['user'] . $intdbname;
 $mysqli = new mysqli('tools.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'] );
 mysqli_query ( $mysqli, "CREATE DATABASE IF NOT EXISTS $dbname;" );
 mysqli_select_db( $mysqli, $dbname );
@@ -78,7 +80,6 @@ if( $_GET['api'] != "true" ) {
 	$editcount = 999;
 	$age = 99999999;
 }
-include( "../credentials.php" );
 include( "../checkhost/checkhost.php" );
 
 if(file_exists( "../whitelist.php" ) ) {
@@ -184,18 +185,7 @@ function reportHit( $service ) {
 		$stat['rday'] = 1;
 		$stat['rmin'] = 1;
 	}
-	//Set up limits
-	$lservice['getipintel'] = array( 'type' => 'min', 'limit' => 15, 'type2' => 'day', 'limit2' => 5000 );
-	$lservice['iphub'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
-	$lservice['iphunter'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
-	$lservice['ipqs'] = array( 'type' => 'month', 'limit' => 50000, 'type2' => 'month', 'limit2' => 50000 );
-	/* $lservice['nofraud'] = array( 'type' => 'day', 'limit' => 600, 'type2' => 'day', 'limit2' => 600 ); */
-	$lservice['proxycheck-io'] = array( 'type' => 'day', 'limit' => 1000, 'type2' => 'day', 'limit2' => 1000 );
-	$lservice['sorbs'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
-	$lservice['spamhaus'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
-	$lservice['teoh'] = array( 'type' => 'day', 'limit' => 5000, 'type2' => 'day', 'limit2' => 5000 );
-	$lservice['dshield'] = array( 'type' => 'min', 'limit' => 1000, 'type2' => 'min', 'limit2' => 1000 );
-	$lservice['ipstack'] = array( 'type' => 'month', 'limit' => 10000, 'type2' => 'min', 'limit2' => 1000 );
+	$lservice = getLimits();
 	
 	//Check first limit
 	if( $lservice[$service]['type'] == 'min' ) { 
