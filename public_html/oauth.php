@@ -93,6 +93,10 @@ $ts_pw = posix_getpwuid(posix_getuid());
 $ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 
 $my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
+if ( mysqli_connect_errno() ) {
+    echo "MySQL Error: " . mysqli_connect_error() . "\n";
+    die();
+}
 $query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
 $site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
 mysqli_close( $my_oa );
@@ -114,6 +118,10 @@ if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
 	$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 	
 	$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
+	if ( mysqli_connect_errno() ) {
+		echo "MySQL Error: " . mysqli_connect_error() . "\n";
+		die();
+	}
 	$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
 	$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
 	mysqli_close( $my_oa );
@@ -239,7 +247,7 @@ function doAuthorizationRedirect() {
 	$data = curl_exec( $ch );
 	if ( !$data ) {
 		header( "HTTP/1.1 $errorCode Internal Server Error" );
-		echo 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+		echo 'Curl error (doAuthorizationRedirect): ' . htmlspecialchars( curl_error( $ch ) );
 		exit(0);
 	}
 	curl_close( $ch );
@@ -306,7 +314,7 @@ function fetchAccessToken() {
 	$data = curl_exec( $ch );
 	if ( !$data ) {
 		header( "HTTP/1.1 $errorCode Internal Server Error" );
-		echo 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+		echo 'Curl error (fetchAccessToken): ' . htmlspecialchars( curl_error( $ch ) );
 		exit(0);
 	}
 	curl_close( $ch );
@@ -368,7 +376,7 @@ function doIdentify() {
 	$data = curl_exec( $ch );
 	if ( !$data ) {
 		header( "HTTP/1.1 $errorCode Internal Server Error" );
-		echo 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+		echo 'Curl error (doIdentify): ' . htmlspecialchars( curl_error( $ch ) );
 		exit(0);
 	}
 	$err = json_decode( $data );
@@ -424,4 +432,4 @@ function doIdentify() {
 	return( $payload );
 }
 
-
+?>
