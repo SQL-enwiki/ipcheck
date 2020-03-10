@@ -89,19 +89,8 @@ if( isset( $_SESSION['mwOAuthUrl'] ) ) {
 
 $_SESSION['wiki'] = 'enwiki';
 $wiki = 'enwiki';
-$ts_pw = posix_getpwuid(posix_getuid());
-$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
 
-$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
-if ( mysqli_connect_errno() ) {
-    echo "MySQL Error: " . mysqli_connect_error() . "\n";
-    die();
-}
-$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
-$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
-mysqli_close( $my_oa );
-//enable for production
-$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
+$mwOAuthUrl = 'https://meta.wikimedia.org/w/index.php?title=Special:OAuth';
 $_SESSION['mwOAuthUrl'] = $mwOAuthUrl;
 
 $wiki = $_SESSION['wiki'];
@@ -114,19 +103,7 @@ if ( isset( $_SESSION['tokenKey'] ) ) {
 
 // Fetch the access token if this is the callback from requesting authorization
 if ( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
-	$ts_pw = posix_getpwuid(posix_getuid());
-	$ts_mycnf = parse_ini_file($ts_pw['dir'] . "/replica.my.cnf");
-	
-	$my_oa = new mysqli('meta.web.db.svc.eqiad.wmflabs', $ts_mycnf['user'], $ts_mycnf['password'], 'meta_p');
-	if ( mysqli_connect_errno() ) {
-		echo "MySQL Error: " . mysqli_connect_error() . "\n";
-		die();
-	}
-	$query = "SELECT url FROM wiki WHERE dbname = '$wiki';";
-	$site = mysqli_fetch_assoc( mysqli_query( $my_oa, $query ) );
-	mysqli_close( $my_oa );
-	//enable for production
-	$mwOAuthUrl = $site['url'] . '/w/index.php?title=Special:OAuth';
+	$mwOAuthUrl = 'https://meta.wikimedia.org/w/index.php?title=Special:OAuth';
 	fetchAccessToken();
 	session_write_close();
 	header('Location: index.php');
