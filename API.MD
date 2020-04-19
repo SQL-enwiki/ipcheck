@@ -4,7 +4,7 @@
   * ip - The IP Address
   * api - Set to true if using the API
   * key - Your personal API key (found at the bottom of the page after logging in)
-  * Example URL: https://tools.wmflabs.org/ipcheck-dev/index.php?ip=8.8.8.8&api=true&key=APIKEYHERE
+  * Example URL: https://ipcheck.toolforge.org/index.php?ip=8.8.8.8&api=true&key=APIKEYHERE
   
 Example result:
 ```javascript
