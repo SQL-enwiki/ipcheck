@@ -132,6 +132,44 @@ mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `api` (
 	`api_user` varchar(512) NOT NULL,
 	PRIMARY KEY (`api_id`)
 );" );
+
+mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `results` (
+	`res_id` bigint NOT NULL AUTO_INCREMENT,
+	`res_ip` varchar(512) NOT NULL,
+	`res_date` varchar(512) NOT NULL,
+	`res_asn` int(20) NOT NULL,
+	`res_asn_wh` int(2) NOT NULL,
+	`res_proxycheck` int(2) NOT NULL,
+	`res_getipintel` int(2) NOT NULL,
+	`res_ipqs_isp` varchar(512) NOT NULL,
+	`res_ipqs_proxy` int(2) NOT NULL,
+	`res_ipqs_vpn` int(2) NOT NULL,
+	`res_ipqs_mobile` int(2) NOT NULL,
+	`res_ipqs_recent_abuse` int(2) NOT NULL,
+	`res_ipqs_tor` int(2) NOT NULL,
+	`res_ipqs_bot` int(2) NOT NULL,
+	`res_ipqs_fraudscore` int(10) NOT NULL,
+	`res_ipqs_org` varchar(512) NOT NULL,
+	`res_iphub_res` int(2) NOT NULL,
+	`res_teoh_hosting` int(2) NOT NULL,
+	`res_teoh_vpnproxy` int(2) NOT NULL,
+	`res_teoh_risk` int(10) NOT NULL,
+	`res_teoh_type` varchar(512) NOT NULL,
+	`res_iphunter` int(2) NOT NULL,
+	`res_ipstack_country` varchar(512) NOT NULL,
+	`res_stopforumspam_listed` varchar(512) NOT NULL,
+	`res_stopforumspam_freq` varchar(512) NOT NULL,
+	`res_stopforumspam_lastseen` varchar(512) NOT NULL,
+	`res_stopforumspam_confidence` varchar(512) NOT NULL,
+	`res_stopforumspam_country` varchar(512) NOT NULL,
+	`res_stopforumspam_delegated` varchar(512) NOT NULL,
+	`res_tor` int(2) NOT NULL,
+	`res_sorbs` int(2) NOT NULL,
+	`res_spamhaus` int(2) NOT NULL,
+	`res_spamcop` int(2) NOT NULL,
+	PRIMARY KEY (`res_id`)
+);");
+
 $musername = mysqli_real_escape_string( $mysqli, $username );
 $apiq = "select api_key from api where api_user = '$musername';";
 
