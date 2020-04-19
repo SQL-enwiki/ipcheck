@@ -47,6 +47,14 @@ function getGlobalEdits( $user ) {
 	return( $res );
 }
 
+function updateRes( $mysqli, $column, $value ) {
+	global $res_id;
+	$date = time();
+	$column = mysqli_real_escape_string( $mysqli, $column );
+	$value = mysqli_real_escape_string( $mysqli, $value );
+	$query = "UPDATE results set res_date = '$date', $column = '$value' where res_id = '$res_id';";
+	$res = mysqli_query( $mysqli, $query );
+}
 function checkWebhost( $ip ) {
 	include( '../webhostconfig.php' );
 	$asn = json_decode( file_get_contents( "https://api.iptoasn.com/v1/as/ip/$ip" ), TRUE );
@@ -132,6 +140,45 @@ mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `api` (
 	`api_user` varchar(512) NOT NULL,
 	PRIMARY KEY (`api_id`)
 );" );
+
+mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `results` (
+	`res_id` bigint NOT NULL AUTO_INCREMENT,
+	`res_ip` varchar(512) NOT NULL,
+	`res_date` varchar(512) NOT NULL,
+	`res_asn` int(20) NOT NULL,
+	`res_asn_wh` int(2) NOT NULL,
+	`res_proxycheck` int(2) NOT NULL,
+	`res_getipintel` float(20) NOT NULL,
+	`res_ipqs_isp` varchar(512) NOT NULL,
+	`res_ipqs_proxy` int(2) NOT NULL,
+	`res_ipqs_vpn` int(2) NOT NULL,
+	`res_ipqs_mobile` int(2) NOT NULL,
+	`res_ipqs_recent_abuse` int(2) NOT NULL,
+	`res_ipqs_tor` int(2) NOT NULL,
+	`res_ipqs_bot` int(2) NOT NULL,
+	`res_ipqs_fraudscore` int(10) NOT NULL,
+	`res_ipqs_org` varchar(512) NOT NULL,
+	`res_iphub_res` int(2) NOT NULL,
+	`res_teoh_hosting` int(2) NOT NULL,
+	`res_teoh_vpnproxy` int(2) NOT NULL,
+	`res_teoh_risk` int(10) NOT NULL,
+	`res_teoh_type` varchar(512) NOT NULL,
+	`res_iphunter` int(2) NOT NULL,
+	`res_ipstack_country` varchar(512) NOT NULL,
+	`res_stopforumspam_listed` varchar(512) NOT NULL,
+	`res_stopforumspam_freq` varchar(512) NOT NULL,
+	`res_stopforumspam_lastseen` varchar(512) NOT NULL,
+	`res_stopforumspam_confidence` varchar(512) NOT NULL,
+	`res_stopforumspam_country` varchar(512) NOT NULL,
+	`res_stopforumspam_delegated` varchar(512) NOT NULL,
+	`res_tor` int(2) NOT NULL,
+	`res_sorbs` int(2) NOT NULL,
+	`res_spamhaus` int(2) NOT NULL,
+	`res_spamcop` int(2) NOT NULL,
+	PRIMARY KEY (`res_id`)
+);");
+
+
 $musername = mysqli_real_escape_string( $mysqli, $username );
 $apiq = "select api_key from api where api_user = '$musername';";
 
@@ -214,12 +261,14 @@ function reportHit( $service ) {
 
 function checkSpamhaus( $ip ) {
     //Check spamhaus ZEN DNSBL, more information at https://www.spamhaus.org/zen/
+	global $mysqli;
     $origip = $ip;
     $expip = explode( ".", $ip );
     $newip = array_reverse( $expip );
     $ip = implode( ".", $newip );
     $dnsres = dns_get_record( $ip . ".zen.spamhaus.org", DNS_A );
     $spamhaus_result = array();
+	$value = 0;
     if( count( $dnsres ) == 0 ) { $spamhaus_result = FALSE; } else {
         foreach( $dnsres as $dns ) {
             $results = array();
@@ -227,56 +276,77 @@ function checkSpamhaus( $ip ) {
             switch( $dns['ip'] ) {
                 case "127.0.0.2":
                     array_push( $results, "SBL Listed (possible spam source), see: <a href='https://www.spamhaus.org/query/ip/$origip'>details</a>" );
+					$value++;
                     break;
                 case "127.0.0.3":
                     array_push( $results, "SBL/CSS Listed  (possible spam source), see: <a href='https://www.spamhaus.org/query/ip/$origip'>details</a>" );
+					$value++;
                     break;
                 case "127.0.0.4":
                     array_push( $results, "CBL Listed (proxy/trojan/botnet), see: <a href='https://www.abuseat.org/lookup.cgi?ip=$origip'>details</a>" );
+					$value++;
                     break;
                 case "127.0.0.5":
                     array_push( $results, "CBL Listed (proxy/trojan/botnet), see: <a href='https://www.abuseat.org/lookup.cgi?ip=$origip'>details</a>" );
+					$value++;
                     break;
                 case "127.0.0.6":
                     array_push( $results, "CBL Listed (proxy/trojan/botnet), see: <a href='https://www.abuseat.org/lookup.cgi?ip=$origip'>details</a>" );
+					$value++;
                     break;
                 case "127.0.0.7":
                     array_push( $results, "CBL Listed (proxy/trojan/botnet), see: <a href='https://www.abuseat.org/lookup.cgi?ip=$origip'>details</a>" );
+					$value++;
                     break;
                 case "127.0.0.10":
                     array_push( $results, "PBL Listed (Should not be sending email), see: <a href='https://www.spamhaus.org/query/ip/$origip'>details</a>" );
+					$value--;
                     break;
                 case "127.0.0.11":
                     array_push( $results, "PBL Listed (Should not be sending email), see: <a href='https://www.spamhaus.org/query/ip/$origip'>details</a>" );
+					$value--;
                     break;
             }
             array_push( $spamhaus_result, $results );
         }
     }
+	updateRes( $mysqli, "res_spamhaus", $value );
     return( $spamhaus_result );
 }
 
 function checkSpamcop( $ip ) {
+	global $mysqli;
 	$r_ip = explode( ".", $ip );
 	$ip = $r_ip[3] . "." . $r_ip[2] . "." . $r_ip[1] . "." . $r_ip[0];
 	$dnsres = dns_get_record( $ip . ".bl.spamcop.net", DNS_A );
-	if( $dnsres[0]['ip'] != "127.0.0.2" ) { return( FALSE ); } else { return( TRUE ); }
+	if( $dnsres[0]['ip'] != "127.0.0.2" ) { 
+		updateRes( $mysqli, "res_spamcop", 0 );
+		return( FALSE ); 
+	} else { 
+		updateRes( $mysqli, "res_spamcop", 1 );
+		return( TRUE ); 
+	}
 }
 
 function checkTor( $ip ) {
+	global $mysqli;
 	$torapi = "https://onionoo.torproject.org/summary?search=$ip";
 	$tor = json_decode( file_get_contents( $torapi ), TRUE );
 	if( @$tor['relays'][0]['a'][0] == $ip ) {
+		updateRes( $mysqli, "res_tor", 1 );
 		return( TRUE );
 	} else {
+		updateRes( $mysqli, "res_tor", 0 );
 		return( FALSE );
 	}
 }
 
 function checkSorbs( $ip ) {
     //Check sorbs DNSBL, more information at http://www.sorbs.net/general/using.shtml
+	global $mysqli;
     $dnsres = dns_get_record( $ip . ".dnsbl.sorbs.net", DNS_A );
     $sorbs_result = array();
+	$value = 0;
     if( count( $dnsres ) == 0 ) { $sorbs_result = FALSE; } else {
         foreach( $dnsres as $dns ) {
             $results = array();
@@ -284,44 +354,57 @@ function checkSorbs( $ip ) {
             switch( $dns['ip'] ) {
                 case "127.0.0.2":
                     array_push( $results, "HTTP Proxy" );
+					$value++;
                     break;
                 case "127.0.0.3":
                     array_push( $results, "SOCKS Proxy" );
+					$value++;
                     break;
                 case "127.0.0.4":
                     array_push( $results, "MISC Proxy" );
+					$value++;
                     break;
                 case "127.0.0.5":
                     array_push( $results, "SMTP Server" );
+					$value++;
                     break;
                 case "127.0.0.6":
                     array_push( $results, "Possible Spam Source" );
+					$value++;
                     break;
                 case "127.0.0.7":
                     array_push( $results, "Vunerable Web server" );
+					$value++;
                     break;
                 case "127.0.0.8":
                     array_push( $results, "Asked not to be testeb by SORBS" );
+					$value++;
                     break;
                 case "127.0.0.9":
                     array_push( $results, "Zombie - Possibly Hijacked Netblock" );
+					$value++;
                     break;
                 case "127.0.0.10":
                     array_push( $results, "Dynamic IP" );
+					$value--;
                     break;
                 case "127.0.0.11":
                     array_push( $results, "Badconf - Invalid A or MX address" );
+					$value++;
                     break;
                 case "127.0.0.12":
                     array_push( $results, "ISP indicates no mail should originate here" );
+					$value--;
                     break;
                 case "127.0.0.14":
                     array_push( $results, "ISP indicates servers should not be present" );
+					$value--;
                     break;
             }
             array_push( $sorbs_result, $results );
         }
     }
+	updateRes( $mysqli, "res_sorbs", $value );
     return( $sorbs_result );
 }
 
@@ -341,6 +424,21 @@ if ( $ip == '' || inet_pton( $ip ) === FALSE ) {
     ] );
     die();
 }
+
+$san_ip = mysqli_real_escape_string( $mysqli, $ip );
+$res_id_query = "select res_id from results where res_ip = '$san_ip';";
+$res_id_result = mysqli_query( $mysqli, $res_id_query );
+
+if( mysqli_num_rows( $res_id_result ) < 1 ) {
+	$res_id_update = "insert into results ( res_ip ) values( '$san_ip' );";
+	$res_id_update_result = mysqli_query( $mysqli, $res_id_update );
+	$res_id_query = "select res_id from results where res_ip = '$san_ip';";
+	$res_id_result = mysqli_query( $mysqli, $res_id_query );
+}
+
+$res_id_array = mysqli_fetch_assoc( $res_id_result );
+$res_id = $res_id_array['res_id'];
+
 $refresh = FALSE;
 $mtype = "";
 if( isset( $_GET['refresh'] ) ) {
@@ -429,6 +527,9 @@ if( $refresh === TRUE ) {
 				if( isset ( $proxycheckio[$ip]['port'] ) ) { $out['proxycheck']['result']['port'] = $proxycheckio[$ip]['port']; }
 				if( isset ( $proxycheckio[$ip]['type'] ) ) { $out['proxycheck']['result']['pctype'] = $proxycheckio[$ip]['type']; }
 				if( isset ( $proxycheckio[$ip]['risk'] ) ) { $out['proxycheck']['result']['riska'] = $proxycheckio[$ip]['risk']; }
+					updateRes( $mysqli, "res_proxycheck", 1 );
+			} else {
+					updateRes( $mysqli, "res_proxycheck", 0 );
 			}
 		}
 	}
@@ -440,6 +541,7 @@ if( $refresh === TRUE ) {
 			$out['getIPIntel']['error'] = $getipintel['message'];
 		} else {
 			$chance = round ( (int)$getipintel['result'] * 100, 3 );
+			updateRes( $mysqli, "res_getipintel", $chance );
 			if( $chance == 0 ) { $chance = number_format( $chance, 1 ); }
 			$out['getIPIntel']['result'] = [
 				'chance' => $chance,
@@ -464,6 +566,16 @@ if( $refresh === TRUE ) {
 				'bot_status' => (bool)$ipqualityscore['bot_status'],
 				'fraud_score' => $ipqualityscore['fraud_score']				
 			];
+			updateRes( $mysqli, "res_ipqs_isp", $ipqualityscore['ISP'] );
+			updateRes( $mysqli, "res_ipqs_proxy", $ipqualityscore['proxy'] );
+			updateRes( $mysqli, "res_ipqs_vpn", $ipqualityscore['vpn'] );
+			updateRes( $mysqli, "res_ipqs_mobile", $ipqualityscore['mobile'] );
+			updateRes( $mysqli, "res_ipqs_recent_abuse", $ipqualityscore['recent_abuse'] );
+			updateRes( $mysqli, "res_ipqs_tor", $ipqualityscore['tor'] );
+			updateRes( $mysqli, "res_ipqs_bot", $ipqualityscore['bot_status'] );
+			updateRes( $mysqli, "res_ipqs_fraudscore", $ipqualityscore['fraud_score'] );
+			updateRes( $mysqli, "res_ipqs_org", $ipqualityscore['organization'] );
+
 		}
 	}
 
@@ -480,7 +592,7 @@ if( $refresh === TRUE ) {
 			if( isset( $iphub['isp'] ) ) {
 				$out['ipHub']['result']['isp'] = $iphub['isp'];
 			}
-
+			updateRes( $mysqli, "res_iphub_res", $iphub['block'] );
 			if ($iphub['block'] < 3) {
 				$out['ipHub']['result']['block'] = $iphub['block'];
 			} else {
@@ -503,6 +615,13 @@ if( $refresh === TRUE ) {
 				$lastseen = $sfs['ip']['lastseen'];
 				$country = $sfs['ip']['country'];
 				$delegated = $sfs['ip']['delegated'];
+				updateRes( $mysqli, "res_stopforumspam_listed", $appears );
+				updateRes( $mysqli, "res_stopforumspam_freq", $frequency );
+				updateRes( $mysqli, "res_stopforumspam_lastseen", $lastseen );
+				updateRes( $mysqli, "res_stopforumspam_confidence", $confidence );
+				updateRes( $mysqli, "res_stopforumspam_country", $country );
+				updateRes( $mysqli, "res_stopforumspam_delegated", $delegated );
+				
 				$out['stopforumspam']['result'] = [
 					'appears' => $appears,
 					'confidence' => $confidence,
@@ -528,6 +647,23 @@ if( $refresh === TRUE ) {
 		} else {
 			$type = $teohio['type'];
 			$risk = $teohio['risk'];
+			if( $teohio['vpn_or_proxy'] == "yes" ) { $vpnorproxy = "1"; } else { $vpnorproxy = "0"; }
+			switch( $risk ) {
+				case "high":
+					$numrisk = 3;
+					break;
+				case "medium":
+					$numrisk = 2;
+					break;
+				case "low":
+					$numrisk = 1;
+					break;
+			}
+			updateRes( $mysqli, "res_teoh_hosting", $teohio['is_hosting'] );
+			updateRes( $mysqli, "res_teoh_vpnproxy", $vpnorproxy );
+			updateRes( $mysqli, "res_teoh_risk", $numrisk );
+			updateRes( $mysqli, "res_teoh_type", $type );
+
 			$out['teohio']['result'] = [
 				'hosting' => true === $teohio['is_hosting'],
 				'vpnOrProxy' => 'yes' === $teohio['vpn_or_proxy'],
@@ -550,8 +686,9 @@ if( $refresh === TRUE ) {
 			if ( isset( $iphunter['data']['isp'] ) ) {
 				$out['ipHunter']['result']['isp'] = $iphunter['data']['isp'];
 			}
+			updateRes( $mysqli, "res_iphunter", $iphunter['data']['block'] );
 
-			if ($iphunter['data']['block'] < 3) {
+			if ( $iphunter['data']['block'] < 3 ) {
 				$out['ipHunter']['result']['block'] = $iphunter['data']['block'];
 			} else {
 				$out['ipHunter']['error'] = true;
@@ -616,8 +753,11 @@ if( $refresh === TRUE ) {
 	//Check if this is a tor node via onionoo
 	if( checkTor( $ip ) === TRUE ) {
 		$out['tor']['result']['tornode'] = TRUE;
+		updateRes( $mysqli, "res_tor", 1 );
+
 	} else {
 		$out['tor']['result']['tornode'] = FALSE;
+		updateRes( $mysqli, "res_tor", 0 );
 	}
 
 	// Check Sorbs setup
