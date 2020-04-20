@@ -53,6 +53,9 @@ function updateRes( $mysqli, $column, $value ) {
 	$column = mysqli_real_escape_string( $mysqli, $column );
 	$value = mysqli_real_escape_string( $mysqli, $value );
 	$query = "UPDATE results set res_date = '$date', $column = '$value' where res_id = '$res_id';";
+	echo "<!-- \n";
+	print_r( $query );
+	echo "\n-->\n";
 	$res = mysqli_query( $mysqli, $query );
 }
 function checkWebhost( $ip ) {
@@ -70,6 +73,9 @@ function checkWebhost( $ip ) {
 
 require '../vendor/autoload.php';
 if( $_GET['api'] != "true" ) {
+	if( @isset( $_GET['ip'] ) === TRUE ) {
+		$persist_ip = $_GET['ip'];
+	}
 	include( "oauth.php" );
 	if( $_GET['logout'] == "true" ) { 
 		session_start();
