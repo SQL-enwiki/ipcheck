@@ -82,7 +82,9 @@ $gConsumerSecret = $ini['consumerSecret'];
 $gTokenKey = '';
 $gTokenSecret = '';
 session_start();
-
+if( @isset( $persist_ip ) === TRUE ) {
+	$_SESSION['ip'] = $persist_ip;
+}
 if( isset( $_SESSION['mwOAuthUrl'] ) ) {
 	$mwOAuthUrl = $_SESSION['mwOAuthUrl'];
 }
