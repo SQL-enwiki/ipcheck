@@ -52,10 +52,7 @@ function updateRes( $mysqli, $column, $value ) {
 	$date = time();
 	$column = mysqli_real_escape_string( $mysqli, $column );
 	$value = mysqli_real_escape_string( $mysqli, $value );
-	$query = "UPDATE results set res_date = '$date', $column = '$value' where res_id = '$res_id';";
-	echo "<!-- \n";
-	print_r( $query );
-	echo "\n-->\n";
+	$query = "UPDATE results set res_date = '$date', $column = '$value' where res_id = '$res_id';";	
 	$res = mysqli_query( $mysqli, $query );
 }
 function checkWebhost( $ip ) {
