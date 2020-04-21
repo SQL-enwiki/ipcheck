@@ -181,6 +181,14 @@ mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `results` (
 	PRIMARY KEY (`res_id`)
 );");
 
+mysqli_query( $mysqli, "CREATE TABLE IF NOT EXISTS `opinions` (
+	`op_id` int(100) auto_increment NOT NULL,
+	`op_user_id` varchar(100) NOT NULL,
+	`op_opinion` varchar(1000) NOT NULL,
+	`op_rationale` blob(2048) NULL,
+	`op_date` int(100) NOT NULL,
+	PRIMARY KEY( `op_id` )
+);" );
 
 $musername = mysqli_real_escape_string( $mysqli, $username );
 $apiq = "select api_key from api where api_user = '$musername';";
