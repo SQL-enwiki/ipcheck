@@ -33,7 +33,7 @@
         <h3 class="panel-title">
             <strong>{{ hostname }}</strong>
         </h3>
-		( <a href="https://tools.wmflabs.org/whois/gateway.py?lookup=true&ip={{ ip }}">whois</a> | 
+		( <a href="https://tools.wmflabs.org/whois-referral/gateway.py?lookup=true&ip={{ ip }}">whois</a> | 
 		{%if ipbase != "" %}
 			<a href="https://tools.wmflabs.org/ipcheck/iprange.php?ipbase={{ ipbase }}&ipstart=0&ipend=255">resolve range</a> | 
 		{% endif %}
